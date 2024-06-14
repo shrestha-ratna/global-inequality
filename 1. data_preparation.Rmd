@@ -1,0 +1,132 @@
+---
+title: "Data Preparation"
+output: html_document
+
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'data_preparation.html'))})
+---
+
+#### Define Libraries
+```{r echo=TRUE, message=FALSE, warning=FALSE, tidy=TRUE}
+library("dplyr")
+library("reshape2")
+library("rmarkdown")
+library("magrittr")
+library("AER")
+library("tidyverse")
+```
+
+#### Define Path
+```{r tidy=TRUE}
+dir.wrk <- getwd()
+dir.data <- file.path(dir.wrk, "dataset/data")
+dir.outdata <- file.path(dir.wrk, "dataset/outputdata")
+dir.plots <- file.path(dir.wrk, "dataset/plots")
+```
+
+#### Define Files
+```{r tidy=TRUE}
+file.region <- file.path(dir.data, "classification_region.csv")
+file.incomeclass <- file.path(dir.data, "classification_income.csv")
+file.pop <- file.path(dir.data, "world_population_2022.csv")
+file.gdp <- file.path(dir.data, "PC_GDP_2022.csv")
+file.cons <- file.path(dir.data, "consumption_2022.csv")
+```
+
+#### Per capita GDP at 2017 constant dollar PPP (source: WDI updated March 28, 2024)
+#### https://databank.worldbank.org/source/world-development-indicators#
+```{r tidy=TRUE}
+data_gdp <- read.csv(file.gdp, header=T, stringsAsFactors = FALSE)
+data_gdp <- data_gdp %>% dplyr::select(1, 2, X2000:X2022)
+
+data_gdp <- data_gdp %>% dplyr::rename(Country = Country.Name, Code = Country.Code)
+data_gdp <- data_gdp %>% gather(Year, gdp, -Country, -Code)
+
+data_gdp$Year <- stringr::str_replace(data_gdp$Year, "X", "")
+data_gdp$Year <-as.numeric(data_gdp$Year)
+```
+
+#### Population data (Source:WDI)
+```{r tidy=TRUE}
+wpop <- read.csv(file.pop, header=T, stringsAsFactors = FALSE)
+wpop <- wpop %>% select(1,2, X2000:X2022)
+wpop <- na.omit(wpop)
+wpop <- wpop %>% dplyr::rename(Country = Country.Name, Code = Country.Code)
+wpop <- wpop %>% gather(Year, pop, -c(Country, Code))
+wpop$Year <- stringr::str_replace(wpop$Year, "X", "")
+wpop$Year <- as.numeric(wpop$Year)
+
+gdp_pop <- inner_join(data_gdp, wpop, by = c("Country", "Code", "Year"))
+gdp_pop$gdp <- as.numeric(gdp_pop$gdp)
+gdp_pop <- na.omit(gdp_pop)
+gdp_pop <- gdp_pop %>% filter(gdp != 0)
+gdp_pop$pc_gdp <- gdp_pop$gdp/gdp_pop$pop
+```
+
+#### Country classification: Income (source: World Bank) 
+#### https://datahelpdesk.worldbank.org/knowledgebase/articles/906519-world-bank-country-and-lending-groups)
+
+```{r tidy=TRUE}
+dat_class1 <- read.csv(file.incomeclass, header=T, stringsAsFactors = FALSE)
+data_class1 <- dat_class1 %>% dplyr::select(1, 2, X2000:X2022)
+```
+
+#### Classification: region
+```{r tidy=TRUE}
+dat_class2 <- read.csv(file.region, header=T, stringsAsFactors = FALSE)
+dat_class2 <- dat_class2 %>% dplyr::select(1:3)
+```
+
+#### join country classification data frames
+```{r tidy=TRUE}
+data_class <- left_join(dat_class2, data_class1, by = c("Code", "Country"))
+dat_class <- data_class %>% gather(Year, in_class, -c(Code, Country, Region))
+dat_class$Year <- stringr::str_replace(dat_class$Year, "X", "")
+dat_class$Year <- as.numeric(dat_class$Year)
+dat_class <- dat_class %>% select(1, 3, 4, 5)
+```
+
+#### Join Per Capita GDP, Population and Classification data frames
+```{r tidy=TRUE}
+gdp_pop <- list(dat_class, gdp_pop) %>% reduce(inner_join, by = c("Code", "Year"))
+
+file.output <- file.path(dir.outdata, "gdp_pop.csv")
+write.table(gdp_pop, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Consumption Expenditure calculation from 2000 to 2022 (source: WDI, updated Feb 21, 2024)
+```{r include=TRUE}
+con_expd <- read.csv(file.cons, header=T, stringsAsFactors = FALSE)
+con_expd <- con_expd %>% select(1, 2, X2000:X2022)
+con_expd <- con_expd %>% dplyr::rename(Country = Country.Name, Code = Country.Code)
+con_expd <- con_expd %>% gather(Year, expnd, -c(Code, Country))
+con_expd$Year <- stringr::str_replace(con_expd$Year, "X", "")
+con_expd$Year <- as.numeric(con_expd$Year)
+```
+
+#### Inner join consumption and population
+```{r tidy=TRUE}
+expd_pop <- inner_join(con_expd, wpop)
+expd_pop$expnd <- as.numeric(expd_pop$expnd)
+expd_pop <- na.omit(expd_pop)
+con_pop <- expd_pop %>% filter(expnd != 0)
+
+con_pop <- con_pop %>% mutate(pcon = expnd/pop)
+con_pop <- con_pop %>% select(1:3,5,6)
+```
+
+#### Join Per Capita Expenditure, Population and Classification data frames
+#### Join GDP, Consumption Expenditure, Population and Classification data frames
+```{r tidy=TRUE}
+con_pop <- list(dat_class, con_pop) %>% reduce(inner_join, by = c("Code", "Year"))
+file.output <- file.path(dir.outdata, "con_pop.csv")
+write.table(con_pop, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+
+dat_all <- list(con_pop, gdp_pop) %>% reduce(inner_join, by = c("Code", "Country", "Year", "pop", "Region", "in_class"))
+
+file.output <- file.path(dir.outdata, "dat_all.csv")
+write.table(dat_all, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```

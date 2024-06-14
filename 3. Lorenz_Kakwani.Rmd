@@ -1,0 +1,804 @@
+---
+title: "Lorenz Kakwani"
+output: html_document
+
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'Lorenz Kakwani.html'))})
+---
+
+
+#### Define Libraries
+```{r echo=TRUE, message=FALSE, warning=FALSE, tidy=TRUE}
+library("dplyr")
+library("reshape2")
+library("rmarkdown")
+library("magrittr")
+library("AER")
+library("tidyverse")
+library("dineq")
+library("reldist")
+library("ineq")
+library("ggpubr") # arrange graphs
+library("IC2")
+library("ggrepel")
+```
+
+#### Define Path
+```{r tidy=TRUE}
+dir.wrk <- getwd()
+dir.data <- file.path(dir.wrk, "dataset/outputdata")
+dir.outdata <- file.path(dir.wrk, "dataset/outputdata")
+dir.plots <- file.path(dir.wrk, "dataset/plots")
+```
+
+#### Define Files
+```{r tidy=TRUE}
+file.dat_all <- file.path(dir.outdata, "dat_all.csv")
+file.gdp_pop <- file.path(dir.outdata, "gdp_pop.csv")
+```
+
+#### main data
+```{r tidy=TRUE}
+gdp_con144 <- read.csv(file.dat_all, header=T, stringsAsFactors = FALSE)
+gdp_con144 <- gdp_con144 %>% dplyr::select(1:7, 9)
+```
+
+#### GDP and Consumption (common 2019, 2020 and 2021)
+```{r tidy=TRUE}
+gdp_con19 <- gdp_con144 %>% filter(Year == 2019)
+gdp_con20 <- gdp_con144 %>% filter(Year == 2020)
+gdp_con21 <-gdp_con144 %>% filter(Year == 2021)
+
+gdp_con19_code <- gdp_con19 %>% dplyr::select(1, 2)
+gdp_con20_code <- gdp_con20 %>% dplyr::select(1, 2)
+gdp_con21_code <- gdp_con21 %>% dplyr::select(1, 2)
+code44 <- list(gdp_con19_code, gdp_con20_code, gdp_con21_code) %>% reduce(inner_join)
+gdp_con44 <- inner_join(code44, gdp_con144)
+gdp_con44$pop <-as.numeric(gdp_con44$pop)
+```
+
+#### Unweighted Gini Indices for Per Capita GDP and Consumption (for 144 Countries)
+### preliminary set up for Lorenz and concentration curves (2019)
+
+```{r tidy=TRUE}
+## Ranked by 2019 GDP (So, GDP Lorenz and Consumption Concentration curve)
+ge_2019 <- gdp_con44 %>% filter(Year==2019)
+
+gg_19 <- ge_2019 %>% arrange(pc_gdp)  ## ranked by 2019 GDP
+gg_19$one <- "1" 
+gg_19$one <-as.numeric(gg_19$one)
+gg_19$cum_unit = cumsum(gg_19$one)/sum(gg_19$one)  ## cum_unit ranked by 2019 per capita GDP
+
+gg_19$cgdp = cumsum(gg_19$pc_gdp)/sum(gg_19$pc_gdp)      ## cumulative per capita GDP
+gg_19$cpcon = cumsum(gg_19$pcon)/sum(gg_19$pcon)  ## cumulative per capita consumption
+```
+
+#### 2019 cumulative consumption ranked by 2019 consumption (Consumptiion lorenz)
+```{r tidy=TRUE}
+ge_19 <- ge_2019 %>% arrange(pcon)  ## Ranked by 2019 per capita consumption
+ge_19$one <- "1" 
+ge_19$one <- as.numeric(ge_19$one)
+ge_19$cum_unt = cumsum(ge_19$one)/sum(ge_19$one)
+ge_19$cpcon = cumsum(ge_19$pcon)/sum(ge_19$pcon)
+```
+
+#### 2020 cumulative data ranked by GDP
+```{r tidy=TRUE}
+ge_2020 <- gdp_con44 %>% filter(Year==2020)
+
+gg_20 <- ge_2020 %>% arrange(pc_gdp)  ## ranked by 2020 GDP
+gg_20$one <- "1" 
+gg_20$one <-as.numeric(gg_20$one)
+gg_20$cum_unit = cumsum(gg_20$one)/sum(gg_20$one)
+
+gg_20$cgdp = cumsum(gg_20$pc_gdp)/sum(gg_20$pc_gdp)
+gg_20$cpcon <-cumsum(gg_20$pcon)/sum(gg_20$pcon)
+```
+
+#### 2020 cumulative consmption ranked by 2020 consumption (Consumption Lorenz)
+```{r tidy=TRUE}
+ge_20 <- ge_2020 %>% arrange(pcon)  ## Ranked by 2020 consumption
+ge_20$one <- "1" 
+ge_20$one <- as.numeric(ge_20$one)
+ge_20$cum_unt = cumsum(ge_20$one)/sum(ge_20$one)
+ge_20$cpcon = cumsum(ge_20$pcon)/sum(ge_20$pcon)
+```
+
+#### 2021 cumulative data: ranked by 2021 GDP
+```{r tidy=TRUE}
+ge_2021 <- gdp_con44 %>% filter(Year==2021)
+
+gg_21 <- ge_2021 %>% arrange(pc_gdp)  ## ranked by 2021 GDP
+gg_21$one <- "1" 
+gg_21$one <-as.numeric(gg_21$one)
+gg_21$cum_unit = cumsum(gg_21$one)/sum(gg_21$one)
+
+gg_21$cgdp = cumsum(gg_21$pc_gdp)/sum(gg_21$pc_gdp)
+gg_21$cpcon <-cumsum(gg_21$pcon)/sum(gg_21$pcon)
+```
+
+#### 2021 cumulative consumption ranked by 2021 consumption (Consumption Lorenz) 
+```{r tidy=TRUE}
+ge_21 <- ge_2021 %>% arrange(pcon)  ## Ranked by 2021 consumption
+ge_21$one <- "1" 
+ge_21$one <- as.numeric(ge_21$one)
+ge_21$cum_unt = cumsum(ge_21$one)/sum(ge_21$one)
+ge_21$cpcon = cumsum(ge_21$pcon)/sum(ge_21$pcon)
+```
+
+#### Unweighted Concentration Curves for 2019 (library(ggrepel))
+```{r tidy=TRUE}
+gg_19$ccode <- gg_19$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+ge_19$ccode <- ge_19$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+gg_20$ccode <- gg_20$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+ge_20$ccode <- ge_20$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+gg_21$ccode <- gg_21$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+ge_21$ccode <- ge_21$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+```
+
+#### Unweighted Weighted Gini
+```{r tidy=TRUE}
+gini144 <- gdp_con44 %>% group_by(Year) %>%
+  summarize(gngdp = gini(pc_gdp), wgn_gdp = gini.wtd(pc_gdp, pop), gncon=gini(pcon), 
+            wgn_con=gini.wtd(pcon, pop), n())
+```
+
+#### LAC values (Damgaard and Weiner: Describing Inequality in Plant Size or Fecundity, 2000. Ecology 81(4),1139-1142.library("ineq"))
+
+```{r tidy=TRUE}
+## Population weighted and unweighted LAC
+LAC_gdpcon44 <- gdp_con44 %>% group_by(Year) %>%
+  summarize(WLAC_gdp = round(Lasym(pc_gdp, pop), 3), WLAC_con = round(Lasym(pcon, pop), 3),
+            ULAC_gdp = round(Lasym(pc_gdp), 3), ULAC_con = round(Lasym(pcon), 3)) %>% as.data.frame()
+```
+
+#### Unweighted Lorenz plots for 2019 to 2021
+##### 2019
+```{r tidy=TRUE}
+gge19 <- ggplot() + 
+  geom_abline(color = "grey")+
+  geom_line(aes(x=ge_19$cum_unt, y=ge_19$cpcon, color = "Consumption (0.437, 0.866)"))+
+  geom_line(aes(x=gg_19$cum_unit, y=gg_19$cgdp, color = "GDP (0.509, 0.874)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(ge_19, ccode),
+                 mapping = aes(x= cum_unt, y=cpcon, label = Code), color = "green3", size = 2)+
+  geom_text_repel(data = subset(gg_19, ccode),
+                 mapping = aes(x =cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  scale_color_hue(name = "Unweighted (2019)", direction = -1)+
+  theme(text=element_text(size=8))+
+  theme(axis.title.x = element_text(size=10))+
+  theme(axis.title.y = element_text(size=10))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.position= c(0.40, 0.84))+
+  theme(axis.title.x =element_blank())+
+  theme(axis.title.y=element_blank())+
+  theme(legend.title = element_text(size = 7),legend.text = element_text(size = 7))+
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### Unweighted Lorenz for 2020
+```{r tidy=TRUE}
+gge20 <- ggplot() + 
+  geom_abline(color = "grey")+
+  geom_line(aes(x=ge_20$cum_unt, y=ge_20$cpcon, color = "Consumption (0.429, 0.870)"))+
+  geom_line(aes(x=gg_20$cum_unit, y=gg_20$cgdp, color = "GDP (0.504, 0.885)"))+
+  labs(x = "",y = "")+
+  geom_text_repel(data = subset(ge_20, ccode),
+                  mapping = aes(x= cum_unt, y=cpcon, label = Code), color = "green3", size = 2) +
+  geom_text_repel(data = subset(gg_20, ccode),
+                  mapping = aes(x =cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  scale_color_hue(name = "Unweighted (2020)", direction = -1)+
+  theme(text=element_text(size=8))+
+  theme(axis.title.x = element_text(size=10))+
+  theme(axis.text.y=element_blank())+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.title = element_text(size = 7),legend.text = element_text(size = 7))+
+  theme(legend.position= c(0.39, 0.84))+
+  theme(axis.title.x =element_blank(), axis.ticks.y=element_blank())+
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### Unweighted Lorenz 2021
+```{r tidy=TRUE}
+gge21 <- ggplot() + 
+  geom_abline(color = "grey")+
+  geom_line(aes(x=ge_21$cum_unt, y=ge_21$cpcon, color = "Consumption (0.431, 0.847)"))+
+  geom_line(aes(x=gg_21$cum_unit, y=gg_21$cgdp, color = "GDP (0.508, 0.881)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(ge_21, ccode),
+                  mapping = aes(x= cum_unt, y=cpcon, label = Code), color = "green3", size = 2) +
+  geom_text_repel(data = subset(gg_21, ccode),
+                  mapping = aes(x =cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  scale_color_hue(name = "Unweighted (2021)", direction = -1)+
+  theme(text=element_text(size=8))+
+  theme(axis.title.x = element_text(size=10))+
+  theme(axis.text.y=element_blank())+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.title = element_text(size = 7),legend.text = element_text(size = 7))+
+  theme(legend.position= c(0.39, 0.84))+
+  theme(axis.title.x =element_blank(), axis.ticks.y=element_blank())+
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank())+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### Unweighted Lorenz: 2019, 2020, and 2021
+```{r tidy=TRUE}
+ugg19_21 <-ggarrange(gge19, gge20, gge21, labels = c("a", "b", "c"), hjust = - 1, 
+          font.label = list(size = 8, color = "black", face = "bold"), 
+          ncol = 3, nrow = 1)
+```
+
+#### Preliminary set up for Weighted Lorenz and Concentration Curves
+#### 2019 curves ranked by 2019 GDP
+```{r tidy=TRUE}
+wg_19 <- ge_2019 %>% arrange(pc_gdp)
+wg_19$one <- "1" 
+wg_19$one <-as.numeric(wg_19$one)
+wg_19$cum_unit = cumsum(wg_19$one*wg_19$pop)/sum(wg_19$one*wg_19$pop)  ## cum_unit ranked by per capita GDP
+
+wg_19$cgdp = cumsum(wg_19$pc_gdp*wg_19$pop)/sum(wg_19$pc_gdp*wg_19$pop)      ## cumulative per capita GDP
+wg_19$cpcon = cumsum(wg_19$pcon*wg_19$pop)/sum(wg_19$pcon*wg_19$pop)
+```
+
+#### Cumulative 2019 Consumption, Ranked by 2019 Consumption
+```{r tidy=TRUE}
+we_19 <- ge_2019 %>% arrange(pcon)
+we_19$one <- "1" 
+we_19$one <- as.numeric(we_19$one)
+we_19$cum_unt = cumsum(we_19$one*we_19$pop)/sum(we_19$one*we_19$pop) ## ranked by per capita consumption
+we_19$cpcon = cumsum(we_19$pcon*we_19$pop)/sum(we_19$pcon*we_19$pop)  ## cumulative per capita consumption
+```
+
+#### Priliminary set up (2020) ranked by 2020 GDP
+```{r tidy=TRUE}
+wg_20 <- ge_2020 %>% arrange(pc_gdp)
+wg_20$one <- "1" 
+wg_20$one <-as.numeric(wg_20$one)
+wg_20$cum_unit = cumsum(wg_20$one*wg_20$pop)/sum(wg_20$one*wg_20$pop)
+
+wg_20$cgdp = cumsum(wg_20$pc_gdp*wg_20$pop)/sum(wg_20$pc_gdp*wg_20$pop)
+wg_20$cpcon = cumsum(wg_20$pcon*wg_20$pop)/sum(wg_20$pcon*wg_20$pop)
+```
+
+#### Cumulative 2020 Consumption Ranked by 2020 Consumption 
+```{r tidy=TRUE}
+we_20 <- ge_2020 %>% arrange(pcon)
+we_20$one <- "1" 
+we_20$one <- as.numeric(we_20$one)
+we_20$cum_unt = cumsum(we_20$one*we_20$pop)/sum(we_20$one*we_20$pop)
+we_20$cpcon = cumsum(we_20$pcon*we_20$pop)/sum(we_20$pcon*we_20$pop)
+```
+
+#### Weighted Cumulative Values
+#### Priliminary set up (2021) ranked by 2021 GDP
+```{r tidy=TRUE}
+wg_21 <- ge_2021 %>% arrange(pc_gdp)
+wg_21$one <- "1" 
+wg_21$one <-as.numeric(wg_21$one)
+wg_21$cum_unit = cumsum(wg_21$one*wg_21$pop)/sum(wg_21$one*wg_21$pop)
+
+wg_21$cgdp = cumsum(wg_21$pc_gdp*wg_21$pop)/sum(wg_21$pc_gdp*wg_21$pop)
+wg_21$cpcon = cumsum(wg_21$pcon*wg_21$pop)/sum(wg_21$pcon*wg_21$pop) 
+```
+
+#### cumulative 2021 consumption ranked by 2021 consumption 
+```{r tidy=TRUE}
+we_21 <- ge_2021 %>% arrange(pcon)
+we_21$one <- "1" 
+we_21$one <- as.numeric(we_21$one)
+we_21$cum_unt = cumsum(we_21$one*we_21$pop)/sum(we_21$one*we_21$pop)
+we_21$cpcon = cumsum(we_21$pcon*we_21$pop)/sum(we_21$pcon*we_21$pop)
+```
+
+#### Lorenz annotations with a few major/populous countries
+```{r tidy=TRUE}
+wg_19$ccode <- wg_19$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+wg_20$ccode <- wg_20$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+wg_21$ccode <- wg_21$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+we_19$ccode <- we_19$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+we_20$ccode <- we_20$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+we_21$ccode <- we_21$Code %in% c("NGA", "BRA", "IND", "CHN", 
+                                 "RUS", "GBR", "CAN", "USA")
+```
+
+#### Lorenz plots for consumption and income, countries ranked by respective year consumption or income 
+### Plot for Population Weighted Lorenz (2019) 
+```{r tidy=TRUE}
+wgg19 <- ggplot() + 
+  geom_abline(color = "grey")+
+  geom_line(aes(x=we_19$cum_unt, y=we_19$cpcon, color = "Consumption (0.445, 1.180)"), size =0.8)+
+  geom_line(aes(x=wg_19$cum_unit, y=wg_19$cgdp, color = "GDP (0.454, 1.174)"), size=0.8)+
+  labs(x = "", y = "")+
+  scale_color_hue(name = "Weighted (2019)", direction = -1)+
+  geom_text_repel(data = subset(we_19, ccode),
+                  mapping = aes(x=cum_unt,y=cpcon, label = Code), color = "green3", size = 2) +
+  geom_text_repel(data = subset(wg_19, ccode),
+                  mapping = aes(x=cum_unit,y=cgdp, label = Code), color = "red", size = 2) +
+  theme(text=element_text(size=8))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.title = element_text(size = 7),legend.text = element_text(size = 7))+
+  theme(axis.title.x = element_text(size=10))+
+  theme(axis.title.y = element_text(size=10)) +
+  theme(axis.title.x=element_blank())+
+  theme(axis.title.y=element_blank())+
+  theme(legend.position= c(0.40, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### Plot for Population Weighted Lorenz (2020)
+```{r tidy=TRUE}
+wgg20 <- ggplot() + 
+  geom_abline(color = "grey")+
+  geom_line(aes(x=we_20$cum_unt,y=we_20$cpcon, color = "Consumption (0.443, 1.155)"), size =0.8)+
+  geom_line(aes(x=wg_20$cum_unit, y=wg_20$cgdp, color = "GDP (0.453, 1.187)"), size=0.8)+
+  labs(x = "", y = "")+
+  scale_color_hue(name = "Weighted (2020)", direction = -1)+
+  geom_text_repel(data = subset(we_20, ccode),
+                  mapping = aes(x=cum_unt, y=cpcon, label = Code), color = "green3", size = 2) +
+  geom_text_repel(data = subset(wg_20, ccode),
+                  mapping = aes(x =cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  theme(text=element_text(size=8))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.title = element_text(size = 7),legend.text = element_text(size = 7))+
+  theme(axis.text.y=element_blank(), axis.ticks.y=element_blank())+
+  theme(axis.title.x=element_blank())+
+  theme(legend.position= c(0.39, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### Plot for Population Weighted Lorenz (2021)
+```{r tidy=TRUE}
+wgg21 <- ggplot() + 
+  geom_abline(color = "grey")+
+  geom_line(aes(x=we_21$cum_unt,y=we_21$cpcon, color = "Consumption (0.442, 1.147)"), size =0.8)+
+  geom_line(aes(x=wg_21$cum_unit, y=wg_21$cgdp, color = "GDP (0.455, 1.208)"), size=0.8)+
+  labs(x = "", y = "")+
+  scale_color_hue(name = "Weighted (2021)", direction = -1)+
+  geom_text_repel(data = subset(we_21, ccode),
+                  mapping = aes(x=cum_unt, y=cpcon, label = Code), color = "green3", size = 2) +
+  geom_text_repel(data = subset(wg_21, ccode),
+                  mapping = aes(x =cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  theme(text=element_text(size=8))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.title = element_text(size = 7),legend.text = element_text(size = 7))+
+  theme(axis.title.y= element_blank(), axis.ticks.y=element_blank())+
+  theme(axis.title.x=element_blank())+
+  theme(legend.position= c(0.39, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### plots 
+```{r fig.height = 4.5, fig.width = 7, fig.align = "center"}
+wgg19_21 <-ggarrange(wgg19, wgg20, wgg21, labels = c("d", "e", "f"), hjust= -1, vjust=0.5,
+                     font.label = list(size = 8, color = "black", face = "bold"), 
+                     ncol = 3, nrow = 1)
+
+lorenz19_21 <-ggarrange(ugg19_21, wgg19_21, ncol = 1, nrow =2)
+
+lorenz_1921 <- annotate_figure(lorenz19_21, left = text_grob("Cumulative % of GDP or Consumption Per Capita", rot = 90, vjust = 1, size =8), bottom = text_grob("Countries Ranked by GDP or Consumption Per Capita", vjust=0, size = 8))
+
+file.plot <- file.path(dir.plots, "lorenz_1921.png")
+png(file.plot, height=4.5, width=7, units="in", bg="white", res=300)
+lorenz_1921
+dev.off()
+```
+#### Concentration Values: ranked by corresponding year GDP
+#### So for Per Capita consumption, the values are Pseudo Gini (IC2 Package)
+
+```{r tidy=TRUE}
+## unweighted p-seudo Gini
+ci_con19 <- calcSConc(ge_2019[, "pcon"], ge_2019[,"pc_gdp"], param=2)$ineq$index
+ci_con20 <- calcSConc(ge_2020[, "pcon"], ge_2020[,"pc_gdp"], param=2)$ineq$index
+ci_con21 <- calcSConc(ge_2021[, "pcon"], ge_2021[,"pc_gdp"], param=2)$ineq$index
+
+## Weighted p-seudo Gini
+wci_con19 <- calcSConc(ge_2019[, "pcon"], ge_2019[,"pc_gdp"], w = ge_2019[,"pop"], param=2)$ineq$index
+wci_con20 <- calcSConc(ge_2020[, "pcon"], ge_2020[,"pc_gdp"], w = ge_2020[,"pop"], param=2)$ineq$index
+wci_con21 <- calcSConc(ge_2021[, "pcon"], ge_2021[,"pc_gdp"], w = ge_2021[,"pop"], param=2)$ineq$index
+```
+
+#### Concentration/Lorenz curves for consumption and income ranked by respective year's GDP
+#### For 2019
+```{r tidy=TRUE}
+ucc19 <- ggplot(gg_19, aes(x=cum_unit)) + 
+  geom_abline(color = "grey")+
+  geom_line(aes(y=cgdp, color = "GDP (0.509)"))+
+  geom_line(aes(y=cpcon, color = "Consumption (0.425)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(gg_19, ccode),
+                  mapping = aes(y=cpcon, label = Code), color = "green3", size = 2) +
+  geom_text_repel(data = subset(gg_19, ccode),
+                  mapping = aes(y=cgdp, label = Code), color = "red", size = 2) +
+  scale_color_hue(name = "Unweighted (2019)", direction = -1)+
+  theme(legend.title = element_text(size = 8),legend.text = element_text(size = 7))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(axis.text.x = element_blank(), axis.ticks = element_blank()) +
+  theme(axis.title.x =element_blank())+
+  theme(text=element_text(size=8))+
+  theme(legend.position= c(0.38, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### For 2020
+```{r tidy=TRUE}
+ucc20 <- ggplot(gg_20, aes(x=cum_unit)) + 
+  geom_abline(color = "grey")+
+  geom_line(aes(y=cpcon, color = "Consumption (0.418)"))+
+  geom_line(aes(y=cgdp, color = "GDP (0.504)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(gg_20, ccode),
+                  mapping = aes(y=cgdp, label = Code), color = "red", size = 2) +
+  geom_text_repel(data = subset(gg_20, ccode),
+                  mapping = aes(y=cpcon, label = Code), color = "green3", size = 2) +
+  scale_color_hue(name= "Unweighted (2020)", direction = -1)+
+  theme(axis.text.y = element_blank(), axis.ticks = element_blank()) +
+  theme(axis.text.x = element_blank(), axis.ticks = element_blank()) +
+  theme(legend.title = element_text(size = 8),legend.text = element_text(size = 7))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(axis.title.x =element_blank())+
+  theme(text=element_text(size=8))+
+  theme(legend.position= c(0.36, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+```
+
+#### For 2021
+```{r tidy=TRUE}
+ucc21 <- ggplot(gg_21, aes(x=cum_unit)) + 
+  geom_abline(color = "grey")+
+  geom_line(aes(y=cpcon, color = "Consumption (0.420)"))+
+  geom_line(aes(y=cgdp, color = "GDP (0.508)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(gg_21, ccode),
+                  mapping = aes(y=cgdp, label = Code), color = "red", size = 2) +
+  geom_text_repel(data = subset(gg_21, ccode),
+                  mapping = aes(y=cpcon, label = Code), color = "green3", size = 2) +
+  scale_color_hue(name= "Unweighted (2021)", direction = -1)+
+  theme(axis.text.y = element_blank(), axis.ticks = element_blank()) +
+  theme(axis.text.x = element_blank(), axis.ticks = element_blank()) +
+  theme(legend.title = element_text(size = 8),legend.text = element_text(size = 7))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(axis.title.x =element_blank())+
+  theme(text=element_text(size=8))+
+  theme(legend.position= c(0.36, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+
+ucc19_21 <- ggarrange(ucc19, ucc20, ucc21, labels = c("a", "b", "c"), ncol = 3, nrow = 1,
+          hjust = -1.5, font.label = list(size = 8, color = "black", face = "bold"))
+```
+
+#### Weighted Concentration Plots ranked by corresponding year's per capita GDP
+```{r tidy=TRUE}
+wcc19 <- ggplot(wg_19, aes(x=cum_unit)) + 
+  geom_abline(color = "grey")+
+  geom_line(aes(y=cpcon, color = "Consumption (0.434)"))+
+  geom_line(aes(y=cgdp, color = "GDP (0.454)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(wg_19, ccode),
+                  mapping = aes(x=cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  geom_text_repel(data = subset(wg_19, ccode),
+                  mapping = aes(x=cum_unit, y=cpcon, label = Code), color = "green3", size = 2) +
+  scale_color_hue(name= "Weighted (2019)", direction = -1)+
+  theme(axis.ticks.x = element_blank(), axis.ticks.y = element_blank()) +
+  theme(legend.title = element_text(size = 8),legend.text = element_text(size = 7))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(axis.title.x =element_blank())+
+  theme(text=element_text(size=8))+
+  theme(legend.position= c(0.36, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+
+wcc20 <- ggplot(wg_20, aes(x=cum_unit)) + 
+  geom_abline(color = "grey")+
+  geom_line(aes(y=cpcon, color = "Consumption (0.431)"))+
+  geom_line(aes(y=cgdp, color = "GDP (0.453)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(wg_19, ccode),
+                  mapping = aes(x=cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  geom_text_repel(data = subset(wg_19, ccode),
+                  mapping = aes(x=cum_unit, y=cpcon, label = Code), color = "green3", size = 2) +
+  scale_color_hue(name= "Weighted (2020)", direction = -1)+
+  theme(axis.text.y = element_blank(), axis.ticks = element_blank()) +
+  theme(legend.position= c(0.36, 0.84))+
+  theme(legend.title = element_text(size = 8),legend.text = element_text(size = 7))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(axis.title.x =element_blank())+
+  theme(text=element_text(size=8))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+
+wcc21 <- ggplot(wg_21, aes(x=cum_unit)) + 
+  geom_abline(color = "grey")+
+  geom_line(aes(y=cpcon, color = "Consmption (0.432)"))+
+  geom_line(aes(y=cgdp, color = "GDP (0.455)"))+
+  labs(x = "", y = "")+
+  geom_text_repel(data = subset(wg_19, ccode),
+                  mapping = aes(x=cum_unit, y=cgdp, label = Code), color = "red", size = 2) +
+  geom_text_repel(data = subset(wg_19, ccode),
+                  mapping = aes(x=cum_unit, y=cpcon, label = Code), color = "green3", size = 2) +
+  scale_color_hue(name= "Weighted (2021)", direction = -1)+
+  theme(axis.text.y = element_blank(), axis.ticks = element_blank()) +
+  theme(legend.title = element_text(size = 8),legend.text = element_text(size = 7))+
+  theme(legend.background = element_rect(fill = "transparent"))+
+  theme(axis.title.x =element_blank())+
+  theme(text=element_text(size=8))+
+  theme(legend.position= c(0.34, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))
+
+wcc19_21<- ggarrange(wcc19, wcc20, wcc21, labels = c("d", "e", "f"), ncol = 3, nrow = 1,
+          hjust = -1.5, font.label = list(size = 8, color = "black", face = "bold"))
+```
+
+#### put the two curves together
+```{r tidy=TRUE}
+cc19_21 <-ggarrange(ucc19_21, wcc19_21, ncol = 1, nrow = 2)
+
+cc_1921 <- annotate_figure(cc19_21, left = text_grob("Cumulative % of GDP or Consumption Per Capita", rot = 90, vjust = 1, size =8), bottom = text_grob("Countries Ranked by Corresponidng Year GDP Per Capita", vjust =0, size =8))
+
+file.plot <- file.path(dir.plots, "cc_1921.png")
+png(file.plot, height=4.5, width=7, units="in", bg="white", res=300)
+cc_1921
+dev.off()
+```
+
+#### Kakwani Index
+### Unweighted Pseudo Gini for per capita expenditure from 2000 to 2022
+```{r tidy=TRUE}
+library(hash)
+by_year <- function(gdp_con44, yr) {
+  return(gdp_con44 %>% filter(Year == yr))
+}
+
+ex_ci <- function(gdp_con44){
+  ha <-hash()
+  for(j in 2000:2022){
+    ha[[as.character(j)]] <-by_year(gdp_con44, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- calcSConc(ha[[i]][, "pcon"], ha[[i]][, "pc_gdp"], param=2)
+    hb[[i]] <- bar$ineq$index
+  }
+  return(hb)
+}
+con_exp <- ex_ci(gdp_con44)
+```
+
+#### Convert hash table to dataframe
+```{r tidy=TRUE}
+Year <- keys(con_exp)
+pgini_exp <- values(con_exp)
+kd <- cbind(Year, pgini_exp)
+kl <- as.data.frame(kd)
+df_ci <- data.frame(lapply(kl, as.character), stringsAsFactors=FALSE)
+df_ci$Year <- as.numeric(df_ci$Year)
+df_ci$pgini_exp <- as.numeric(df_ci$pgini_exp)
+```
+
+#### Per capita GDP Gini (144 countries from 2015)
+```{r tidy=TRUE}
+
+dat_00_22 <- gdp_con44 %>% filter(Year>=2000)
+gini_g <- dat_00_22 %>% group_by(Year) %>% summarise(gini_gdp = gini(pc_gdp), nc=n()) 
+```
+
+#### Gini of GDP and Pseudo Gini of per capita Expenditure (Kakwani Index)
+```{r tidy=TRUE}
+ci_ge <- left_join(df_ci, gini_g)
+kak_ci <- ci_ge %>% mutate(kakwani = gini_gdp - pgini_exp)
+```
+
+#### Population Weighted Pseudo Gini for Per Capita Consumption
+```{r tidy=TRUE}
+ex_wci <- function(gdp_con44){
+  ha <-hash()
+  for(j in 2000:2022){
+    ha[[as.character(j)]] <-by_year(gdp_con44, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- calcSConc(ha[[i]][, "pcon"], ha[[i]][, "pc_gdp"], ha[[i]][, "pop"], param=2)
+    hb[[i]] <- bar$ineq$index
+  }
+  return(hb)
+}
+wci_exp <- ex_wci(gdp_con44)
+```
+
+#### Convert hash table to dataframe
+```{r tidy=TRUE}
+Year <- keys(wci_exp)
+wpgini_exp <- values(wci_exp)
+wkd <- cbind(Year, wpgini_exp)
+wkl <- as.data.frame(wkd)
+df_wci <- data.frame(lapply(wkl, as.character), stringsAsFactors=FALSE)
+df_wci$Year <- as.numeric(df_wci$Year)
+df_wci$wpgini_exp <- as.numeric(df_wci$wpgini_exp)
+```
+
+#### Population Weighted per Capita GDP Gini
+```{r tidy=TRUE}
+wgini_g <- dat_00_22 %>% group_by(Year) %>% summarise(wgini_gdp = gini.wtd(pc_gdp, pop)) 
+```
+
+#### Population Weighted Gini of GDP and Pseudo Gini of per capita Expenditure (Kakwani Index)
+```{r tidy=TRUE}
+wci <- left_join(df_wci, wgini_g)
+kak_wci <- wci %>% mutate(wkakwani = wgini_gdp - wpgini_exp)
+kak_wuci <- cbind(kak_ci, kak_wci)
+kakwani_wuci <- kak_wuci %>% select(1:5, 7:9)
+
+file.output <- file.path(dir.outdata, "kakwani_wuci.csv")
+write.table(kakwani_wuci, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Population Weighted/unweighted kakwani Index
+```{r tidy=TRUE}
+WUK1 <- ggplot(kakwani_wuci, aes(x=Year)) + 
+  geom_line(aes(y=wgini_gdp, color = "Per Capita GDP Gini"), linetype ="solid", size=0.8)+
+  geom_line(aes(y=wpgini_exp, color = "Per Capita Consumption Pseudo Gini"), linetype ="solid", size=0.8)+
+  geom_line(aes(y=wkakwani, color = "Kakwani Index"), linetype ="solid", size=0.8)+
+  geom_line(aes(y=gini_gdp, color = "Per Capita GDP Gini"), linetype ="dashed")+
+  geom_line(aes(y=pgini_exp, color = "Per Capita Consumption Pseudo Gini"), linetype ="dashed")+
+  geom_line(aes(y=kakwani, color = "Kakwani Index"), linetype ="dashed")+
+  scale_color_discrete(name = "Line Color", limits=c("Per Capita GDP Gini", 
+                              "Per Capita Consumption Pseudo Gini", "Kakwani Index"))+
+  labs(x = "Year",
+       y = "Per Capita GDP (Consumption) Gini (Pseudo Gini)")+
+  geom_line(aes(y=wgini_gdp, linetype ="solid"))+
+  geom_line(aes(y=wpgini_exp, linetype ="solid"))+
+  geom_line(aes(y=wkakwani, linetype ="solid"))+
+  geom_line(aes(y=gini_gdp, linetype ="dashed"))+
+  geom_line(aes(y=pgini_exp, linetype ="dashed"))+
+  geom_line(aes(y=kakwani, linetype ="dashed"))+
+  scale_linetype_discrete(name= "Line Type", limits=c( "Population Weighted","Unweighted"))+
+  theme(axis.title.x = element_text(size=8)) +
+  theme(axis.title.y = element_text(size=8)) +
+  scale_y_continuous(limits = c(-0.05, 0.60), breaks = seq(-0.05, 0.60, 0.05)) +
+  scale_x_continuous(breaks = seq(min(kak_wci$Year), max(kak_wci$Year), 1)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(text=element_text(size=8))+
+  theme(legend.position= c(0.34, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))+
+  theme(legend.title = element_blank())+
+  theme(legend.text = element_text(size = 7))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.position= c(0.34, 0.50))
+WUK1
+```
+
+#### Kakwani Index Without China, Indian and US
+```{r tidy=TRUE}
+nChina <- gdp_con44 %>% filter(Country !="China")
+nIndia <- gdp_con44 %>% filter(Country != "India")
+nUS <- gdp_con44 %>% filter(Country !="United States")
+```
+
+#### Gini without China, India or US
+```{r tidy=TRUE}
+gini_nchina <- nChina %>% group_by(Year) %>%
+  summarise(gini_nC = gini.wtd(pc_gdp, pop))
+
+gini_nindia <- nIndia %>% group_by(Year) %>%
+  summarise(gini_nI = gini.wtd(pc_gdp, pop))
+
+gini_nUS <- nUS %>% group_by(Year) %>%
+  summarize(gini_nUS = gini.wtd(pc_gdp, pop))
+
+all_gini <- gdp_con44 %>% group_by(Year) %>%
+  summarise(g_all = gini.wtd(pc_gdp, pop))
+
+wtgini_all <- list(all_gini, gini_nchina, gini_nindia, gini_nUS) %>% 
+  reduce(left_join, by = "Year")
+```
+
+#### Consumption concentration without China, India or US 
+```{r tidy=TRUE}
+ci_nchina <- nChina %>% group_by(Year) %>%
+  summarise(ci_nC = calcSConc(pcon, pc_gdp, w = pop, param = 2)$ineq$index)
+
+ci_nindia <- nIndia %>% group_by(Year) %>%
+  summarise(ci_nI = calcSConc(pcon, pc_gdp, w = pop, param = 2)$ineq$index)
+
+ci_nUS <- nUS %>% group_by(Year) %>%
+  summarise(ci_nUS = calcSConc(pcon, pc_gdp, w = pop, param = 2)$ineq$index)
+
+all_ci <- gdp_con44 %>% group_by(Year) %>%
+  summarise(ci_all = calcSConc(pcon, pc_gdp, w = pop, param = 2)$ineq$index)
+
+wtci_all <- list(all_ci, ci_nchina, ci_nindia, ci_nUS) %>% 
+  reduce(left_join, by = "Year")
+
+kakci_gini <- cbind(wtgini_all, wtci_all)
+kakci_gini <- kakci_gini %>% select(1:5, 7:10)
+```
+
+#### Kakwani Index Calculation
+```{r tidy=TRUE}
+kci <- kakci_gini %>% mutate(k_all = g_all- ci_all, k_nC = gini_nC - ci_nC, 
+                             k_nI = gini_nI - ci_nI, k_nUS = gini_nUS - ci_nUS)
+kci <- kci %>% select(1, 10:13) 
+
+file.output <- file.path(dir.outdata, "kci.csv")
+write.table(kci, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Kakwani Index Calculation
+```{r fig.height = 3.5, fig.width = 7, fig.align = "center"}
+kak_index <- ggplot(kci, aes(x = Year))+
+  geom_line(aes(y = k_all, color = "All"), linetype = "solid", size = 0.8)+
+  geom_line(aes(y = k_nC, color = "Without China"), linetype = "solid")+
+  geom_line(aes(y = k_nI, color = "Without India"), linetype ="solid")+
+  geom_line(aes(y = k_nUS, color = "Without US"), linetype = "solid")+
+  scale_colour_manual(values=c("Without China" = "blue", "Without India" = "red", 
+                               "Without US" = "green", "All" = "black"))+
+  guides(color=guide_legend(nrow=2))+
+  labs(x = "Year", y = "Weighted Kakwani Index")+
+  theme(axis.title.x = element_text(size=8)) +
+  theme(axis.title.y = element_text(size=8)) +
+  scale_x_continuous(breaks = seq(min(kci$Year), max(kci$Year), 1)) +
+  scale_y_continuous(limits = c(-0.03, 0.07), breaks = seq(-0.03, 0.07, 0.01)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = c(0.3,0.88)) +
+  theme(legend.box = "vertical")+
+  theme(text=element_text(size=8))+
+  theme(legend.position= c(0.34, 0.84))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))+
+  theme(legend.spacing.y = unit(0, "lines"))+
+  theme(legend.spacing.x = unit(0.5, "lines"))+
+  theme(legend.background = element_rect(fill = "transparent"))
+
+kak_wo <-ggarrange(WUK1, kak_index, labels = c("a", "b"), hjust = - 1.5, 
+                     font.label = list(size = 8, color = "black", face = "bold"), 
+                     ncol = 2, nrow = 1)
+
+file.plot <- file.path(dir.plots, "kak_wo.png")
+png(file.plot, height=3.5, width=7, units="in", bg="white", res=300)
+kak_wo
+dev.off()
+```

@@ -1,0 +1,33 @@
+---
+title: "Income and consumption inequality between countries during COVID-19 and post-pandemic recovery in 2021"
+
+author:
+  - name: "**Ratna K. Shrestha**"
+    affiliation: Vancouver School of Economics and Sauder School of Business, University of British Columbia
+
+output: html_document
+
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+---
+
+### Abstract
+> The global coronavirus pandemic (COVID-19) had an unprecedented negative economic impact worldwide. However, its effect on income or consumption inequality between countries is less clear, as is whether such inequality changed in favour of few rich or many low-income countries. In this paper, I utilize the Gini index and the Lorenz asymmetry coefficient (LAC) to analyse World Bank data as of February 21, 2024. Unlike the common perception, both population-weighted and unweighted per capita income and consumption inequalities between countries declined in the aftermath of the COVID-19, albeit more modestly than in the past. With the declining inequality, population-weighted income distribution changed slightly in favour of the wealthy few, while consumption distribution changed in favour of many low-income countries. Additionally, with comparatively lower economic impact, China had an equalizing effect on income but almost no effect on consumption inequalities. India, on the other hand, had a dis-equalizing effect on both income and consumption inequalities. With an economic recovery in 2021, population-weighted income inequality worsened primarily due to the change in income distribution in favour of the wealthy few. In contrast, consumption inequality slightly improved with the distribution changing in favour of low-income countries. Relative to the pre-pandemic year, the gap between income Gini and consumption pseudo Gini increased in both 2020 and 2021, suggesting consumption smoothing by countries.
+<br/><br/>
+
+#### Code availability
+R-codes used for data analysis is available at (https://github.com/shrestha-ratna/economic-inequality)
+<br/><br/>
+
+#### Citation
+Shrestha, Ratna K. **Income and consumption inequality between Countries during COVID-19 and post-pandemic recovery in 2021** 2024. (*submitted*) 
+<br/><br/>
+
+#### Corresponding author
+Ratna K. Shrestha, PhD <br/>
+University of British Columbia, <br/>
+6000 Iona Drive, Vancouver, BC, Canada V6T 1L4 <br/>
+E-mail: ratna.shrestha@ubc.ca <br/>

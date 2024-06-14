@@ -1,0 +1,219 @@
+Code,Country,Region,Region (exc. high income),Income,EMU,HIPC,LDC,Lending,SIDS,IBRD member,Small States,FCS,Demo Div
+ABW,Aruba,LCN,,HIC,,,,,SIDS,,,,LTE
+AFG,Afghanistan,SAS,,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+AGO,Angola,SSF,SSA,LMC,,,LDC,IBRD,,WB,,,PRE
+ALB,Albania,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+AND,Andorra,ECS,,HIC,,,,,,,,,
+ARE,United Arab Emirates,MEA,,HIC,,,,,,WB,,,LTE
+ARG,Argentina,LCN,LAC,UMC,,,,IBRD,,WB,,,EAR
+ARM,Armenia,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+ASM,American Samoa,EAS,EAP,UMC,,,,,SIDS,,,,
+ATG,Antigua and Barbuda,LCN,,HIC,,,,IBRD,SIDS,WB,SS,,PST
+AUS,Australia,EAS,,HIC,,,,,,WB,,,PST
+AUT,Austria,ECS,,HIC,EMU,,,,,WB,,,PST
+AZE,Azerbaijan,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+BDI,Burundi,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+BEL,Belgium,ECS,,HIC,EMU,,,,,WB,,,PST
+BEN,Benin,SSF,SSA,LMC,,HPC,LDC,IDA,,WB,,,PRE
+BFA,Burkina Faso,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+BGD,Bangladesh,SAS,,LMC,,,LDC,IDA,,WB,,,EAR
+BGR,Bulgaria,ECS,ECA,UMC,,,,IBRD,,WB,,,PST
+BHR,Bahrain,MEA,,HIC,,,,,,WB,SS,,EAR
+BHS,Bahamas,LCN,,HIC,,,,,SIDS,WB,SS,,LTE
+BIH,Bosnia and Herzegovina,ECS,ECA,UMC,,,,IBRD,,WB,,,PST
+BLR,Belarus,ECS,ECA,UMC,,,,IBRD,,WB,,,PST
+BLZ,Belize,LCN,LAC,UMC,,,,IBRD,SIDS,WB,SS,,EAR
+BMU,Bermuda,NAC,,HIC,,,,,,,,,
+BOL,Bolivia,LCN,LAC,LMC,,HPC,,IBRD,,WB,,,EAR
+BRA,Brazil,LCN,LAC,UMC,,,,IBRD,,WB,,,LTE
+BRB,Barbados,LCN,,HIC,,,,,SIDS,WB,SS,,PST
+BRN,Brunei Darussalam,EAS,,HIC,,,,,,WB,SS,,LTE
+BTN,Bhutan,SAS,,LMC,,,LDC,IDA,,WB,SS,,EAR
+BWA,Botswana,SSF,SSA,UMC,,,,IBRD,,WB,SS,,EAR
+CAF,Central African Republic,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+CAN,Canada,NAC,,HIC,,,,,,WB,,,PST
+CHE,Switzerland,ECS,,HIC,,,,,,WB,,,PST
+CHI,Channel Islands,ECS,,HIC,,,,,,,,,
+CHL,Chile,LCN,,HIC,,,,IBRD,,WB,,,LTE
+CHN,China,EAS,EAP,UMC,,,,IBRD,,WB,,,LTE
+CIV,Côte d'Ivoire,SSF,SSA,LMC,,HPC,,IDA,,WB,,,PRE
+CMR,Cameroon,SSF,SSA,LMC,,HPC,,Blend,,WB,,FCS,PRE
+COD,Congo Dem. Rep.,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+COG,Congo Rep.,SSF,SSA,LMC,,HPC,,Blend,,WB,,FCS,PRE
+COL,Colombia,LCN,LAC,UMC,,,,IBRD,,WB,,,LTE
+COM,Comoros,SSF,SSA,LMC,,HPC,LDC,IDA,SIDS,WB,SS,FCS,PRE
+CPV,Cabo Verde,SSF,SSA,LMC,,,,Blend,SIDS,WB,SS,,EAR
+CRI,Costa Rica,LCN,LAC,UMC,,,,IBRD,,WB,,,LTE
+CUB,Cuba,LCN,LAC,UMC,,,,,SIDS,,,,PST
+CUW,Curaçao,LCN,,HIC,,,,,SIDS,,,,
+CYM,Cayman Islands,LCN,,HIC,,,,,,,,,
+CYP,Cyprus,ECS,,HIC,EMU,,,,,WB,SS,,LTE
+CZE,Czech Republic,ECS,,HIC,,,,,,WB,,,PST
+DEU,Germany,ECS,,HIC,EMU,,,,,WB,,,PST
+DJI,Djibouti,MEA,MNA,LMC,,,LDC,IDA,,WB,SS,,EAR
+DMA,Dominica,LCN,LAC,UMC,,,,Blend,SIDS,WB,SS,,
+DNK,Denmark,ECS,,HIC,,,,,,WB,,,PST
+DOM,Dominican Republic,LCN,LAC,UMC,,,,IBRD,SIDS,WB,,,EAR
+DZA,Algeria,MEA,MNA,LMC,,,,IBRD,,WB,,,EAR
+ECU,Ecuador,LCN,LAC,UMC,,,,IBRD,,WB,,,EAR
+EGY,Egypt Arab Rep.,MEA,MNA,LMC,,,,IBRD,,WB,,,EAR
+ERI,Eritrea,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+ESP,Spain,ECS,,HIC,EMU,,,,,WB,,,PST
+EST,Estonia,ECS,,HIC,EMU,,,,,WB,SS,,LTE
+ETH,Ethiopia,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,EAR
+FIN,Finland,ECS,,HIC,EMU,,,,,WB,,,PST
+FJI,Fiji,EAS,EAP,UMC,,,,Blend,SIDS,WB,SS,,LTE
+FRA,France,ECS,,HIC,EMU,,,,,WB,,,PST
+FRO,Faroe Islands,ECS,,HIC,,,,,,,,,
+FSM,Micronesia Fed. Sts.,EAS,EAP,LMC,,,,IDA,SIDS,WB,SS,FCS,EAR
+GAB,Gabon,SSF,SSA,UMC,,,,IBRD,,WB,SS,,EAR
+GBR,United Kingdom,ECS,,HIC,,,,,,WB,,,PST
+GEO,Georgia,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+GHA,Ghana,SSF,SSA,LMC,,HPC,,IDA,,WB,,,EAR
+GIB,Gibraltar,ECS,,HIC,,,,,,,,,
+GIN,Guinea,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+GMB,Gambia The,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,SS,,PRE
+GNB,Guinea-Bissau,SSF,SSA,LIC,,HPC,LDC,IDA,SIDS,WB,SS,FCS,PRE
+GNQ,Equatorial Guinea,SSF,SSA,UMC,,,,IBRD,,WB,SS,,PRE
+GRC,Greece,ECS,,HIC,EMU,,,,,WB,,,PST
+GRD,Grenada,LCN,LAC,UMC,,,,Blend,SIDS,WB,SS,,EAR
+GRL,Greenland,ECS,,HIC,,,,,,,,,
+GTM,Guatemala,LCN,LAC,UMC,,,,IBRD,,WB,,,EAR
+GUM,Guam,EAS,,HIC,,,,,SIDS,,,,LTE
+GUY,Guyana,LCN,LAC,UMC,,HPC,,IDA,SIDS,WB,SS,,LTE
+HKG,Hong Kong SAR China,EAS,,HIC,,,,,,,,,PST
+HND,Honduras,LCN,LAC,LMC,,HPC,,IDA,,WB,,,EAR
+HRV,Croatia,ECS,,HIC,,,,IBRD,,WB,,,PST
+HTI,Haiti,LCN,LAC,LMC,,HPC,LDC,IDA,SIDS,WB,,FCS,EAR
+HUN,Hungary,ECS,,HIC,,,,,,WB,,,PST
+IDN,Indonesia,EAS,EAP,LMC,,,,IBRD,,WB,,,EAR
+IMN,Isle of Man,ECS,,HIC,,,,,,,,,
+IND,India,SAS,,LMC,,,,IBRD,,WB,,,EAR
+IRL,Ireland,ECS,,HIC,EMU,,,,,WB,,,LTE
+IRN,Iran Islamic Rep.,MEA,MNA,LMC,,,,IBRD,,WB,,,EAR
+IRQ,Iraq,MEA,MNA,UMC,,,,IBRD,,WB,,FCS,PRE
+ISL,Iceland,ECS,,HIC,,,,,,WB,SS,,LTE
+ISR,Israel,MEA,,HIC,,,,,,WB,,,EAR
+ITA,Italy,ECS,,HIC,EMU,,,,,WB,,,PST
+JAM,Jamaica,LCN,LAC,UMC,,,,IBRD,SIDS,WB,SS,,LTE
+JOR,Jordan,MEA,MNA,UMC,,,,IBRD,,WB,,,EAR
+JPN,Japan,EAS,,HIC,,,,,,WB,,,PST
+KAZ,Kazakhstan,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+KEN,Kenya,SSF,SSA,LMC,,,,Blend,,WB,,,PRE
+KGZ,Kyrgyz Republic,ECS,ECA,LMC,,,,IDA,,WB,,,LTE
+KHM,Cambodia,EAS,EAP,LMC,,,LDC,IDA,,WB,,,EAR
+KIR,Kiribati,EAS,EAP,LMC,,,LDC,IDA,SIDS,WB,SS,,EAR
+KNA,St. Kitts and Nevis,LCN,,HIC,,,,IBRD,SIDS,WB,SS,,
+KOR,Korea Rep.,EAS,,HIC,,,,,,WB,,,PST
+KWT,Kuwait,MEA,,HIC,,,,,,WB,,,LTE
+LAO,Lao PDR,EAS,EAP,LMC,,,LDC,IDA,,WB,,,EAR
+LBN,Lebanon,MEA,MNA,LMC,,,,IBRD,,WB,,FCS,LTE
+LBR,Liberia,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+LBY,Libya,MEA,MNA,UMC,,,,IBRD,,WB,,FCS,EAR
+LCA,St. Lucia,LCN,LAC,UMC,,,,Blend,SIDS,WB,SS,,LTE
+LIE,Liechtenstein,ECS,,HIC,,,,,,,,,
+LKA,Sri Lanka,SAS,,LMC,,,,IBRD,,WB,,,LTE
+LSO,Lesotho,SSF,SSA,LMC,,,LDC,IDA,,WB,SS,,EAR
+LTU,Lithuania,ECS,,HIC,EMU,,,,,WB,,,PST
+LUX,Luxembourg,ECS,,HIC,EMU,,,,,WB,,,PST
+LVA,Latvia,ECS,,HIC,EMU,,,,,WB,,,LTE
+MAC,Macao SAR China,EAS,,HIC,,,,,,,,,PST
+MAF,St. Martin (French part),LCN,,HIC,,,,,,,,,
+MAR,Morocco,MEA,MNA,LMC,,,,IBRD,,WB,,,LTE
+MCO,Monaco,ECS,,HIC,,,,,,,,,
+MDA,Moldova,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+MDG,Madagascar,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+MDV,Maldives,SAS,,UMC,,,,IDA,SIDS,WB,SS,,EAR
+MEX,Mexico,LCN,LAC,UMC,,,,IBRD,,WB,,,EAR
+MHL,Marshall Islands,EAS,EAP,UMC,,,,IDA,SIDS,WB,SS,FCS,
+MKD,North Macedonia,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+MLI,Mali,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+MLT,Malta,MEA,,HIC,EMU,,,,,WB,SS,,PST
+MMR,Myanmar,EAS,EAP,LMC,,,LDC,IDA,,WB,,FCS,EAR
+MNE,Montenegro,ECS,ECA,UMC,,,,IBRD,,WB,SS,,LTE
+MNG,Mongolia,EAS,EAP,LMC,,,,IBRD,,WB,,,LTE
+MNP,Northern Mariana Islands,EAS,,HIC,,,,,SIDS,,,,
+MOZ,Mozambique,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+MRT,Mauritania,SSF,SSA,LMC,,HPC,LDC,IDA,,WB,,,PRE
+MUS,Mauritius,SSF,SSA,UMC,,,,IBRD,SIDS,WB,SS,,LTE
+MWI,Malawi,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+MYS,Malaysia,EAS,EAP,UMC,,,,IBRD,,WB,,,LTE
+NAM,Namibia,SSF,SSA,UMC,,,,IBRD,,WB,SS,,EAR
+NCL,New Caledonia,EAS,,HIC,,,,,SIDS,,,,LTE
+NER,Niger,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+NGA,Nigeria,SSF,SSA,LMC,,,,Blend,,WB,,FCS,PRE
+NIC,Nicaragua,LCN,LAC,LMC,,HPC,,IDA,,WB,,,EAR
+NLD,Netherlands,ECS,,HIC,EMU,,,,,WB,,,PST
+NOR,Norway,ECS,,HIC,,,,,,WB,,,PST
+NPL,Nepal,SAS,,LMC,,,LDC,IDA,,WB,,,EAR
+NRU,Nauru,EAS,,HIC,,,,IBRD,SIDS,WB,SS,,
+NZL,New Zealand,EAS,,HIC,,,,,,WB,,,PST
+OMN,Oman,MEA,,HIC,,,,,,WB,,,LTE
+PAK,Pakistan,SAS,,LMC,,,,Blend,,WB,,,EAR
+PAN,Panama,LCN,,HIC,,,,IBRD,,WB,,,EAR
+PER,Peru,LCN,LAC,UMC,,,,IBRD,,WB,,,EAR
+PHL,Philippines,EAS,EAP,LMC,,,,IBRD,,WB,,,EAR
+PLW,Palau,EAS,EAP,UMC,,,,IBRD,SIDS,WB,SS,,
+PNG,Papua New Guinea,EAS,EAP,LMC,,,,Blend,SIDS,WB,,FCS,EAR
+POL,Poland,ECS,,HIC,,,,IBRD,,WB,,,LTE
+PRI,Puerto Rico,LCN,,HIC,,,,,SIDS,,,,LTE
+PRK,Korea Dem. People's Rep.,EAS,EAP,LIC,,,,,,,,,LTE
+PRT,Portugal,ECS,,HIC,EMU,,,,,WB,,,PST
+PRY,Paraguay,LCN,LAC,UMC,,,,IBRD,,WB,,,EAR
+PSE,West Bank and Gaza,MEA,MNA,LMC,,,,,,,,FCS,EAR
+PYF,French Polynesia,EAS,,HIC,,,,,SIDS,,,,LTE
+QAT,Qatar,MEA,,HIC,,,,,,WB,SS,,LTE
+ROU,Romania,ECS,,HIC,,,,IBRD,,WB,,,LTE
+RUS,Russian Federation,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+RWA,Rwanda,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,EAR
+SAU,Saudi Arabia,MEA,,HIC,,,,,,WB,,,EAR
+SDN,Sudan,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+SEN,Senegal,SSF,SSA,LMC,,HPC,LDC,IDA,,WB,,,PRE
+SGP,Singapore,EAS,,HIC,,,,,SIDS,WB,,,PST
+SLB,Solomon Islands,EAS,EAP,LMC,,,LDC,IDA,SIDS,WB,SS,FCS,EAR
+SLE,Sierra Leone,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+SLV,El Salvador,LCN,LAC,LMC,,,,IBRD,,WB,,,EAR
+SMR,San Marino,ECS,,HIC,,,,,,WB,SS,,
+SOM,Somalia,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+SRB,Serbia,ECS,ECA,UMC,,,,IBRD,,WB,,,LTE
+SSD,South Sudan,SSF,SSA,LIC,,,LDC,IDA,,WB,,FCS,PRE
+STP,São Tomé and Príncipe,SSF,SSA,LMC,,HPC,LDC,IDA,SIDS,WB,SS,,
+SUR,Suriname,LCN,LAC,UMC,,,,IBRD,SIDS,WB,SS,,EAR
+SVK,Slovak Republic,ECS,,HIC,EMU,,,,,WB,,,LTE
+SVN,Slovenia,ECS,,HIC,EMU,,,,,WB,,,PST
+SWE,Sweden,ECS,,HIC,,,,,,WB,,,PST
+SWZ,Eswatini,SSF,SSA,LMC,,,,IBRD,,WB,SS,,EAR
+SXM,Sint Maarten (Dutch part),LCN,,HIC,,,,,SIDS,,,,
+SYC,Seychelles,SSF,,HIC,,,,IBRD,SIDS,WB,SS,,LTE
+SYR,Syrian Arab Republic,MEA,MNA,LIC,,,,IDA,,WB,,FCS,EAR
+TCA,Turks and Caicos Islands,LCN,,HIC,,,,,,,,,
+TCD,Chad,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,FCS,PRE
+TGO,Togo,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+THA,Thailand,EAS,EAP,UMC,,,,IBRD,,WB,,,LTE
+TJK,Tajikistan,ECS,ECA,LMC,,,,IDA,,WB,,,EAR
+TKM,Turkmenistan,ECS,ECA,UMC,,,,IBRD,,WB,,,EAR
+TLS,Timor-Leste,EAS,EAP,LMC,,,LDC,Blend,SIDS,WB,SS,FCS,PRE
+TON,Tonga,EAS,EAP,UMC,,,,IDA,SIDS,WB,SS,,EAR
+TTO,Trinidad and Tobago,LCN,,HIC,,,,IBRD,SIDS,WB,SS,,LTE
+TUN,Tunisia,MEA,MNA,LMC,,,,IBRD,,WB,,,LTE
+TUR,Türkiye,ECS,ECA,UMC,,,,IBRD,,WB,,,EAR
+TUV,Tuvalu,EAS,EAP,UMC,,,LDC,IDA,SIDS,WB,SS,FCS,
+TWN,Taiwan China,EAS,,HIC,,,,,,,,,
+TZA,Tanzania,SSF,SSA,LMC,,HPC,LDC,IDA,,WB,,,PRE
+UGA,Uganda,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+UKR,Ukraine,ECS,ECA,LMC,,,,IBRD,,WB,,FCS,PST
+URY,Uruguay,LCN,,HIC,,,,IBRD,,WB,,,LTE
+USA,United States,NAC,,HIC,,,,,,WB,,,PST
+UZB,Uzbekistan,ECS,ECA,LMC,,,,Blend,,WB,,,EAR
+VCT,St. Vincent and the Grenadines,LCN,LAC,UMC,,,,Blend,SIDS,WB,SS,,LTE
+VEN,Venezuela RB,LCN,,,,,,IBRD,,WB,,FCS,EAR
+VGB,British Virgin Islands,LCN,,HIC,,,,,SIDS,,,,
+VIR,Virgin Islands (U.S.),LCN,,HIC,,,,,SIDS,,,,LTE
+VNM,Vietnam,EAS,EAP,LMC,,,,IBRD,,WB,,,LTE
+VUT,Vanuatu,EAS,EAP,LMC,,,,IDA,SIDS,WB,SS,,EAR
+WSM,Samoa,EAS,EAP,LMC,,,,IDA,SIDS,WB,SS,,EAR
+XKX,Kosovo,ECS,ECA,UMC,,,,IDA,,WB,,FCS,
+YEM,Yemen Rep.,MEA,MNA,LIC,,,LDC,IDA,,WB,,FCS,EAR
+ZAF,South Africa,SSF,SSA,UMC,,,,IBRD,,WB,,,EAR
+ZMB,Zambia,SSF,SSA,LIC,,HPC,LDC,IDA,,WB,,,PRE
+ZWE,Zimbabwe,SSF,SSA,LMC,,,,Blend,,WB,,FCS,EAR

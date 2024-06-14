@@ -1,0 +1,716 @@
+---
+title: "Inequality Descriptive"
+output: html_document
+
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'Inequality Descriptive.html'))})
+---
+
+#### Define Libraries
+```{r echo=TRUE, message=FALSE, warning=FALSE, tidy=TRUE}
+library("dplyr")
+library("reshape2")
+library("rmarkdown")
+library("magrittr")
+library("AER")
+library("tidyverse")
+library("dineq")
+library("reldist")
+library("ineq")
+library("ggpubr") # arrange graphs
+library("IC2")
+#install.packages('C:/Users/shres/Downloads/IC2_1.0-1 (1).tar.gz', repos=NULL, type='source')
+```
+
+#### Define Path
+```{r tidy=TRUE}
+dir.wrk <- getwd()
+dir.data <- file.path(dir.wrk, "dataset/data")
+dir.outdata <- file.path(dir.wrk, "dataset/outputdata")
+dir.plots <- file.path(dir.wrk, "dataset/plots")
+dir.results <- file.path(dir.wrk, "dataset/results")
+```
+
+#### Define Files
+```{r tidy=TRUE}
+file.con_pop <- file.path(dir.outdata, "con_pop.csv")
+file.gdp_pop <- file.path(dir.outdata, "gdp_pop.csv")
+file.dat_all <- file.path(dir.outdata, "dat_all.csv")
+```
+
+#### Per capita GDP and Population Data
+```{r tidy=TRUE}
+gdp_data <- read.csv(file.gdp_pop, header=T, stringsAsFactors = FALSE)
+gdp_data <- gdp_data %>% select(1:5, 7,8)
+```
+
+#### Data from 2021 as the reference (2021 has 194 countries)
+```{r tidy=TRUE}
+gdp_2021 <- gdp_data %>% filter(Year == 2021)
+gdp_21_code <- gdp_2021 %>% select(1)
+```
+
+#### Data from 2000 to 2021 (2013 to 2021 has 194 countries)
+```{r tidy=TRUE}
+dat_gdp <- inner_join(gdp_21_code, gdp_data)
+dat_gdp <- dat_gdp[order(dat_gdp$Country, dat_gdp$Year),]
+```
+
+#### Mean Per Capita GDP and Per capita gdp Gini index by Year 2013-2021 (same 194 countries)
+```{r tidy=TRUE}
+mean_gdp <- dat_gdp %>% group_by(Year) %>%
+  summarize(mean_pgdp=mean(pc_gdp), wtmean_pgdp=weighted.mean(pc_gdp, pop),nc_gdp = n())
+
+gdp_gini_194 <- dat_gdp %>% group_by(Year) %>%
+  summarize(ginigdp = gini.wtd(pc_gdp), wgini_gdp = gini.wtd(pc_gdp, pop), n())
+
+file.output <- file.path(dir.results, "gdp_gini_194.csv")
+write.table(gdp_gini_194, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Per Capita CONSUMPTIOM Expenditure (144 countries from 2015 to 2021)
+```{r tidy=TRUE}
+con_data <- read.csv(file.con_pop, header=T, stringsAsFactors = FALSE)
+con_data <- con_data %>% select(1:7)
+
+con_gini_ <- con_data %>% group_by(Year) %>%
+  summarize(ginicon = gini.wtd(pcon), wgini_con = gini.wtd(pcon, pop), n())
+
+file.output <- file.path(dir.results, "con_gini_144.csv")
+write.table(con_gini, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Consumption 
+```{r tidy=TRUE}
+con_2019 <- con_data %>% filter(Year == 2019)
+con_2020 <-con_data %>% filter(Year == 2020)
+con_2021 <-con_data %>% filter(Year == 2021)
+con_2022 <-con_data %>% filter(Year == 2022)
+
+con_19_code <- con_2019 %>% select(1, 2)
+con_20_code <- con_2020 %>% select(1, 2)
+con_21_code <- con_2021 %>% select(1, 2)
+con_22_code <- con_2022 %>% select(1, 2)
+con_code <- list(con_19_code, con_20_code, con_21_code) %>% reduce(inner_join)
+```
+
+#### Data from 2000 to 2022
+```{r include=TRUE}
+dat_con <- inner_join(con_code, con_data)
+dat_con <- dat_con[order(dat_con$Country, dat_con$Year),]
+
+file.output <- file.path(dir.results, "dat_con.csv")
+write.table(dat_con, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+
+#pop_sum <- dat_con %>% group_by(Year) %>% summarize(psum=sum(pop))
+```
+
+#### Mean GDP and Consumption Expenditure for 144 nations
+```{r tidy=TRUE}
+## consumption data for 144 nations from 2013 to 2021 and 136 for 2022.
+mean_con <- dat_con %>% group_by(Year) %>%
+  dplyr::summarize(mean_con=mean(pcon), wtmean_con=weighted.mean(pcon, pop),nc_con = n())
+
+mean_gdpcon <- cbind(mean_gdp, mean_con) ### 2013 to 2021 have 194 countries for GDP
+mean_gdpcon <- mean_gdpcon %>% select(1:4, 6:8)
+
+#con_ind <-dat_con %>% filter(Country == "India")
+#con_ind
+
+file.output <- file.path(dir.results, "mean_gdpcon.csv")
+write.table(mean_gdpcon, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+
+#### Per capita gdp Gini index by Year (2015-2021 144 countries, 136 for 2022)
+```{r tidy=TRUE}
+con_gini <- dat_con %>% group_by(Year) %>%
+  summarize(gini_con = gini.wtd(pcon), wgini_con = gini.wtd(pcon, pop), n())
+
+file.output <- file.path(dir.results, "con_gini.csv")
+write.table(con_gini, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### 144 countries with both GDP and Consumption Expenditure Data (dat_all data)
+```{r tidy=TRUE}
+
+gdp_con144 <- read.csv(file.dat_all, header=T, stringsAsFactors = FALSE)
+gdp_con144 <- gdp_con144 %>% dplyr::select(1:7, 9)
+gdp_con144_2021 <- gdp_con144 %>% filter(Year==2021)
+total_pop144 <- summarize(gdp_con144_2021, total_pop = sum(pop), n())
+```
+
+#### GDP and Consumption data 2019, 2020 and 2021 144 common nations
+```{r tidy=TRUE}
+gdp_con19 <- gdp_con144 %>% filter(Year == 2019)
+gdp_con20 <- gdp_con144 %>% filter(Year == 2020)
+gdp_con21 <-gdp_con144 %>% filter(Year == 2021)
+
+view(gdp_con19)
+#gdp_con44 %>% group_by(Year) %>%
+  #summarize(wtm_gdp = weighted.mean(pc_gdp, pop), n())
+
+gdp_con19_code <- gdp_con19 %>% dplyr::select(1, 2)
+gdp_con20_code <- gdp_con20 %>% dplyr::select(1, 2)
+gdp_con21_code <- gdp_con21 %>% dplyr::select(1, 2)
+code44 <- list(gdp_con19_code, gdp_con20_code, gdp_con21_code) %>% reduce(inner_join)
+gdp_con44 <- inner_join(code44, gdp_con144)
+
+## total population 2019
+gdp_con44_2019 <- gdp_con44 %>% filter(Year==2019)
+gdp_con44_2020 <- gdp_con44 %>% filter(Year==2020)
+summarize(gdp_con44_2019, total_pop = sum(pop), n())
+
+gdp_conC <- gdp_con44 %>% filter(Country == "China")
+gdp_conI <- gdp_con44 %>% filter(Country == "India")
+gdp_conU <- gdp_con44 %>% filter(Country == "United States")
+
+mean_gdpcon44 <- gdp_con44 %>% group_by(Year) %>%
+                dplyr::summarize(wtm_gdp44 = weighted.mean(pc_gdp, pop), wtm_con44 = weighted.mean(pcon, pop),
+                                 um_gdp44 = mean(pc_gdp), um_con44= mean(pcon), nc = n())
+
+file.output <- file.path(dir.results, "mean_gdpcon44.csv")
+write.table(mean_gdpcon44, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+
+```
+
+#### mean GDP and consumption plot for 144 countries
+```{r tidy=TRUE}
+av_gdpcon44 <- mean_gdpcon44
+av_gdpcon44$`nc`<- NULL
+
+av_gdpcon44 <- reshape2::melt(av_gdpcon44, id.vars="Year")
+av_gdpcon44$Group <- ifelse((av_gdpcon44$variable == "wtm_gdp44") | (av_gdpcon44$variable == "um_gdp44"), "Per capita GDP", "Per capita consumption")
+av_gdpcon44$Weight <- ifelse((av_gdpcon44$variable == "wtm_gdp44") | (av_gdpcon44$variable == "wtm_con44"), "Population weighted", "Unweighted")
+
+av_gdpcon44$Group <- factor(av_gdpcon44$Group, levels=c("Per capita GDP","Per capita consumption"))
+av_gdpcon44$Weight <- factor(av_gdpcon44$Weight, levels=c("Population weighted","Unweighted"))
+
+#table(df_gini144$variable, df_gini144$Group)
+#table(df_gini144$variable, df_gini144$Weight)
+```
+
+#### PLOT ---
+```{r tidy=TRUE}
+mgc44 <- ggplot(av_gdpcon44, aes(x = Year)) +
+  geom_line(aes(y = value, color = Group, linetype = Weight), linewidth = 0.75) +
+  scale_colour_manual(values=c("red","green")) +  
+  scale_linetype_manual(values=c("solid","dotted")) +
+  labs(x = "Year", y = "Per capita GDP or consumption (PPP 2017 $)")+
+  theme(text=element_text(size=8))+
+  scale_x_continuous(breaks = seq(min(av_gdpcon44$Year), max(av_gdpcon44$Year), 1)) +
+  scale_y_continuous(limits = c(6000, 24000), breaks = seq(6000, 24000, 2000)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.box = "vertical") +
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = c(0.44, 0.92)) +
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.spacing.x = unit(0.4, "lines"))+
+  theme(legend.spacing.y = unit(0, "cm"))+
+  guides(fill = guide_legend(byrow = TRUE))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.height = unit(0.1, "cm"))+
+  theme(legend.text=element_text(size=7))+
+  theme(legend.title = element_blank())
+```
+
+#### Histogram 2019 to 2021
+```{r tidy=TRUE}
+gdp_con1219 <- gdp_con44 %>% subset(Year %in% 2019:2021)
+
+## weighted mean per capita GDP
+wmu <- gdp_con1219 %>% group_by(Year) %>% dplyr::summarise(grp.wmean=weighted.mean(pc_gdp, pop))
+wm_con <- gdp_con1219 %>% group_by(Year) %>% dplyr::summarise(con.wmean=weighted.mean(pcon, pop))
+
+
+## histogram plot
+hist1921<- ggplot(gdp_con1219, aes(x=pc_gdp, color=factor(Year))) +
+    geom_histogram(aes(weight = pop), bins = 50,
+                 fill = "white", position = "dodge", alpha =0.5)+
+  geom_vline(data = wmu, aes(xintercept=grp.wmean, color = factor(Year)), linetype="dotted", linewidth = 0.5)+
+  labs(x = "Per capita GDP (ppp 2017 $)", y = "Population")+
+  scale_x_continuous(limits = c(0, 130000), breaks = seq(0, 130000, 10000)) +
+  theme(text=element_text(size=8))+
+  theme(legend.position = c(0.6, 0.84)) +
+  theme(legend.spacing.x = unit(0.4, "lines"))+
+  theme(legend.spacing.y = unit(0.6, "lines"))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))+
+  theme(legend.text=element_text(size=7))+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  scale_color_discrete(name = "      Year (Weighted per capita GDP)",
+                                labels = c("2019 ($17,573)", "2020 ($16,898)",
+                                 "2021 ($17,837)"))
+```
+
+#### Mean and Histogram in one plot
+```{r fig.height = 3.5, fig.width = 7, fig.align = "center"}
+mean_hist <-ggarrange(mgc44, hist1921, labels = c("a", "b"), hjust = -6.0, 
+                     font.label = list(size = 8, color = "black", face = "plain"), 
+                     ncol = 2, nrow = 1)
+
+file.plot <- file.path(dir.plots, "mean_hist.png")
+png(file.plot, height=3.5, width=7, units="in", bg="white", res=300)
+mean_hist
+dev.off()
+```
+
+#### Cumulative GDP values calculations 
+```{r tidy=TRUE}
+## 2019
+gdp_con19_44 <- gdp_con44 %>% filter(Year == 2019)
+wg_19 <- gdp_con19_44 %>% arrange(pc_gdp)
+wg_19$one <- "1" 
+wg_19$one <-as.numeric(wg_19$one)
+wg_19$cum_unit = cumsum(wg_19$one*wg_19$pop)/sum(wg_19$one*wg_19$pop)  ## pop cum_unit ranked by GDP
+wg_19$cgdp = cumsum(wg_19$pc_gdp*wg_19$pop)/sum(wg_19$pc_gdp*wg_19$pop) 
+
+## 2020
+gdp_con20_44 <- gdp_con44 %>% filter(Year == 2020)
+wg_20 <- gdp_con20_44 %>% arrange(pc_gdp)
+wg_20$one <- "1" 
+wg_20$one <-as.numeric(wg_20$one)
+wg_20$cum_unit = cumsum(wg_20$one*wg_20$pop)/sum(wg_20$one*wg_20$pop)  ## cum_unit ranked by per capita GDP
+wg_20$cgdp = cumsum(wg_20$pc_gdp*wg_20$pop)/sum(wg_20$pc_gdp*wg_20$pop)
+
+## 2021
+gdp_con21_44 <- gdp_con44 %>% filter(Year == 2021)
+wg_21 <- gdp_con21_44 %>% arrange(pc_gdp)
+wg_21$one <- "1" 
+wg_21$one <-as.numeric(wg_21$one)
+wg_21$cum_unit = cumsum(wg_21$one*wg_21$pop)/sum(wg_21$one*wg_21$pop)  ## pop cum_unit ranked by GDP
+wg_21$cgdp = cumsum(wg_21$pc_gdp*wg_21$pop)/sum(wg_21$pc_gdp*wg_21$pop)
+```
+
+#### weighted and Unweighted Gini (Income and consumption) for 144 countries 
+```{r tidy=TRUE}
+gini144 <- gdp_con44 %>% group_by(Year) %>%
+  summarize(gngdp = gini(pc_gdp), wgn_gdp = gini.wtd(pc_gdp, pop), gncon=gini(pcon), 
+            wgn_con=gini.wtd(pcon, pop), n())
+
+file.output <- file.path(dir.outdata, "gini144.csv")
+write.table(gini144, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Population weighted and unweighted LAC
+#### Lorenz Asymmetry Coefficient Calculations: if LAC < 1, the point where the Lorenz curve is parallel to the line of equality is below the axis of symmetry and the inequality is caused by relatively many poor nations. 
+#### Damgaard and Weiner: Describing Inequality in Plant Size or Fecundity, 2000. Ecology 81(4),1139-1142.
+```{r tidy=TRUE}
+LAC_gdpcon44 <- gdp_con44 %>% group_by(Year) %>%
+  summarize(WLAC_gdp = round(Lasym(pc_gdp, pop), 3), WLAC_con = round(Lasym(pcon, pop), 3),
+            ULAC_gdp = round(Lasym(pc_gdp), 3), ULAC_con = round(Lasym(pcon), 3)) %>% as.data.frame()
+
+# file.output <- file.path(dir.results, "LAC_gdpcon44.csv")
+# write.table(LAC_gdpcon44, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+
+```
+
+#### plot Gini of GDP and Expenditure for 144 countries from 2013 to 2021
+```{r tidy=TRUE}
+gini144_new <- gini144
+gini144_new$`n()`<- NULL
+
+df_gini144 <- reshape2::melt(gini144_new, id.vars="Year")
+df_gini144$Group <- ifelse((df_gini144$variable == "gngdp") | (df_gini144$variable == "wgn_gdp"), "Per capita GDP", "Per capita consumption")
+df_gini144$Weight <- ifelse((df_gini144$variable == "wgn_gdp") | (df_gini144$variable == "wgn_con"), "Population weighted", "Unweighted")
+
+df_gini144$Group <- factor(df_gini144$Group, levels=c("Per capita GDP","Per capita consumption"))
+df_gini144$Weight <- factor(df_gini144$Weight, levels=c("Population weighted","Unweighted"))
+
+#table(df_gini144$variable, df_gini144$Group)
+#table(df_gini144$variable, df_gini144$Weight)
+```
+
+#### PLOT ---
+```{r tidy=TRUE}
+gdpcon_144 <- ggplot(df_gini144, aes(x = Year)) +
+  geom_line(aes(y = value, color = Group, linetype = Weight)) +
+  scale_colour_manual(values=c("red","green")) +  
+  scale_linetype_manual(values=c("solid","dotted")) +
+  labs(x = "Year", y = "Per Capita GDP or Consumption Gini")+
+  theme(text=element_text(size=8))+
+  scale_x_continuous(breaks = seq(min(gini144$Year), max(gini144$Year), 1)) +
+  scale_y_continuous(limits = c(0.42, 0.60), breaks = seq(0.42, 0.60, 0.02)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "bottom") +
+  theme(legend.box = "vertical")+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.spacing.x = unit(0.4, "lines"))+
+  theme(legend.spacing.y = unit(0, "lines"))+
+  theme(legend.key.width = unit(0.5, 'cm')) +
+  theme(legend.key.size= unit(0.5, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))+
+  theme(legend.text=element_text(size=7))+
+  theme(legend.background = element_rect(fill = "transparent"))
+```
+
+#### Plot LAC
+```{r tidy=TRUE}
+df_LAC44 <- reshape2::melt(LAC_gdpcon44, id.vars="Year")
+df_LAC44$Group <- ifelse((df_LAC44$variable == "WLAC_gdp") | (df_LAC44$variable == "ULAC_gdp"), "Per capita GDP", "Per capita consumption")
+df_LAC44$Weight <- ifelse((df_LAC44$variable == "WLAC_gdp") | (df_LAC44$variable == "WLAC_con"), "Population weighted", "Unweighted")
+
+df_LAC44$Group <- factor(df_LAC44$Group, levels=c("Per capita GDP","Per capita consumption"))
+df_LAC44$Weight <- factor(df_LAC44$Weight, levels=c("Population weighted","Unweighted"))
+
+LAC_gdpcon <- ggplot(df_LAC44, aes(x = Year)) +
+  geom_line(aes(y = value, color = Group, linetype = Weight)) +
+  scale_colour_manual(values=c("red","green")) +  
+  scale_linetype_manual(values=c("solid","dotted")) +
+  labs(x = "Year", y = "Per Capita GDP or Consumption LAC")+
+  theme(text=element_text(size=8))+
+  scale_x_continuous(breaks = seq(min(df_LAC44$Year), max(df_LAC44$Year), 1)) +
+  scale_y_continuous(limits = c(0.8, 1.24), breaks = seq(0.8, 1.24, 0.04))+
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "bottom") +
+  theme(legend.box = "vertical")+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.spacing.y = unit(0, "lines"))
+LAC_gdpcon
+```
+#### Plot together
+
+```{r fig.height = 3.5, fig.width = 7, fig.align = "center"}
+Gini_LAC <- ggarrange(gdpcon_144, LAC_gdpcon, labels = c("a", "b"), hjust = -1.1, 
+                     font.label = list(size = 8, color = "black", face = "bold"), 
+                     ncol = 2, nrow = 1, common.legend = TRUE, legend = "bottom")
+
+file.plot <- file.path(dir.plots, "Gini_LAC.png")
+png(file.plot, height=3.5, width=7, units="in", bg="white", res=300)
+Gini_LAC
+dev.off()
+```
+#### Weighted GINI with and without India, China or US (2016-2021)
+```{r tidy=TRUE}
+nchina <- gdp_con44 %>% filter(Country !="China")
+nindia <- gdp_con44 %>% filter(Country != "India")
+nUS <- gdp_con44 %>% filter(Country !="United States")
+
+gnc <- nchina %>% group_by(Year) %>%
+  summarise(wgdp_nC = gini.wtd(pc_gdp, pop), wcon_nC= gini.wtd(pcon, pop))
+
+gni <- nindia %>% group_by(Year) %>%
+  summarise(wgdp_nI = gini.wtd(pc_gdp, pop), wcon_nI= gini.wtd(pcon, pop))
+
+gnUS <- nUS %>% group_by(Year) %>%
+  summarize(wgdp_nUS = gini.wtd(pc_gdp, pop), wcon_nUS = gini.wtd(pcon, pop))
+
+## weighted Gini for all 144 countries
+wg_gini <- gdp_con44 %>% group_by(Year) %>%
+  summarise(wg_gdp = gini.wtd(pc_gdp, pop), wg_con = gini.wtd(pcon, pop), ncon=n())
+
+## with all 144 and without China, India or US 
+wgdpcon_gini <- list(wg_gini, gnc, gni, gnUS) %>% reduce(left_join, by = "Year")
+
+file.output <- file.path(dir.results, "wgdpcon_gini.csv")
+write.table(wgdpcon_gini, file.output, sep = ",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Consumption GINI with or without India, China, or US
+```{r tidy=TRUE}
+wg_gdp41 <- ggplot(wgdpcon_gini, aes(x = Year))+
+  geom_line(aes(y = wg_gdp, color = "All"), linewidth = 1.0)+
+  geom_line(aes(y = wgdp_nC, color = "Without China"))+
+  geom_line(aes(y = wgdp_nI, color = "Without India"))+
+  geom_line(aes(y = wgdp_nUS, color = "Without US"))+
+  scale_colour_manual(values=c("Without China" = "blue", "Without India" = "red",
+                               "Without US" = "green", "All" = "black"))+
+   labs(x = "Year", y = "Per Capita GDP Gini")+
+  theme(text=element_text(size=8))+
+  scale_x_continuous(breaks = seq(min(wgdpcon_gini$Year), max(wgdpcon_gini$Year), 1)) +
+  scale_y_continuous(limits = c(0.36, 0.60), breaks = seq(0.36, 0.60, 0.02)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = c(0.3, 0.15)) +
+  theme(legend.box = "vertical")+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.spacing.y = unit(0, "lines"))
+```
+
+#### Consumption GINI with or without India, China, or US
+```{r tidy=TRUE}
+wg_con41 <- ggplot(wgdpcon_gini, aes(x = Year))+
+  geom_line(aes(y = wg_con, color = "All"), linewidth = 1.0)+
+  geom_line(aes(y = wcon_nC, color = "Without China"))+
+  geom_line(aes(y = wcon_nI, color = "Without India"))+
+  geom_line(aes(y = wcon_nUS, color = "Without US"))+
+  scale_colour_manual(values=c("Without China" = "blue", "Without India" = "red",
+                               "Without US" = "green", "All" = "black"))+
+    labs(x = "Year", y = "Per Capita Consumption Gini")+
+  theme(text=element_text(size=8))+
+  scale_x_continuous(breaks = seq(min(wgdpcon_gini$Year), max(wgdpcon_gini$Year), 1)) +
+  scale_y_continuous(limits = c(0.36, 0.60), breaks = seq(0.36, 0.60, 0.02)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = c(0.3, 0.15)) +
+  theme(legend.box = "vertical")+
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.spacing.y = unit(0, "lines"))
+```
+#### Plot together
+
+```{r fig.height = 3.5, fig.width = 7, fig.align = "center"}
+Gini_44 <- ggarrange(wg_gdp41, wg_con41, labels = c("a", "b"), hjust = -1.1, 
+                     font.label = list(size = 8, color = "black", face = "plain"), 
+                     ncol = 2, nrow = 1, common.legend = TRUE, legend = "bottom")
+
+file.plot <- file.path(dir.plots, "Gini_44.png")
+png(file.plot, height=3.5, width=7, units="in", bg="white", res=300)
+Gini_44
+dev.off()
+```
+
+#### Weighted LAC with and without India, China or US
+```{r tidy=TRUE}
+nchina <- gdp_con44 %>% filter(Country !="China")
+nindia <- gdp_con44 %>% filter(Country != "India")
+nUS <- gdp_con44 %>% filter(Country !="United States")
+
+LAC_nC <- nchina %>% group_by(Year) %>%
+  summarize(WLAC_gdp_nC = round(Lasym(pc_gdp, pop), 3), WLAC_con_nC = round(Lasym(pcon, pop), 3)) %>% as.data.frame()
+  
+LAC_nI <- nindia %>% group_by(Year) %>%
+  summarize(WLAC_gdp_nI = round(Lasym(pc_gdp, pop), 3), WLAC_con_nI = round(Lasym(pcon, pop), 3)) %>% as.data.frame()
+
+LAC_nUS <- nUS %>% group_by(Year) %>%
+  summarize(WLAC_gdp_nUS = round(Lasym(pc_gdp, pop), 3), WLAC_con_nUS = round(Lasym(pcon, pop), 3)) %>% as.data.frame()
+
+
+## LAC with all 144 (2015-2021) and without China, India or US 
+wo_LAC <- list(LAC_gdpcon44, LAC_nC, LAC_nI, LAC_nUS) %>% reduce(left_join, by = "Year")
+
+file.output <- file.path(dir.results, "wo_LAC.csv")
+write.table(wo_LAC, file.output, sep = ",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Theil L or Mean Log Deviation (MLD)
+#### 144 countries with both GDP and Consumption Expenditure Data
+
+```{r tidy=TRUE}
+mld_gdp194 <- gdp_pop %>% group_by(Year) %>%
+  summarize(mldgdp = mld.wtd(pc_gdp), wmld_gdp = mld.wtd(pc_gdp, pop), n())
+
+mld_con144 <- con_pop %>% group_by(Year) %>%
+  summarize(mldcon=mld.wtd(pcon), wmld_con=mld.wtd(pcon, pop), n())
+mld_194_144 <- cbind(mld_gdp194, mld_con144)
+
+file.output <- file.path(dir.results, "mld_194_144.csv")
+write.table(mld_194_144, file.output, sep = ",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+
+mld144 <- gdp_con44 %>% group_by(Year) %>%
+  summarize(mldgdp = mld.wtd(pc_gdp), wmld_gdp = mld.wtd(pc_gdp, pop), mldcon=mld.wtd(pcon), 
+            wmld_con=mld.wtd(pcon, pop))
+```
+
+#### mean GDP and consumption plot for 144 countries
+```{r tidy=TRUE}
+mld44 <- reshape2::melt(mld144, id.vars="Year")
+mld44$Group <- ifelse((mld44$variable == "mldgdp") | (mld44$variable == "wmld_gdp"), "Per capita GDP", "Per capita consumption")
+mld44$Weight <- ifelse((mld44$variable == "wmld_gdp") | (mld44$variable == "wmld_con"), "Population weighted", "Unweighted")
+
+mld44$Group <- factor(mld44$Group, levels=c("Per capita GDP","Per capita consumption"))
+mld44$Weight <- factor(mld44$Weight, levels=c("Population weighted","Unweighted"))
+#table(df_gini144$variable, df_gini144$Group)
+#table(df_gini144$variable, df_gini144$Weight)
+
+```
+
+#### PLOT ---
+```{r tidy=TRUE}
+mld44_plot <- ggplot(mld44, aes(x = Year)) +
+  geom_line(aes(y = value, color = Group, linetype = Weight)) +
+  scale_colour_manual(values=c("red","green")) +  
+  scale_linetype_manual(values=c("solid","dotted")) +
+  guides(linetype = guide_legend(order = 1),col = guide_legend(order = 2))+
+  labs(x = "Year", y = "Per Capita GDP or Consumption MLD")+
+  theme(text=element_text(size=8))+
+  scale_x_continuous(breaks = seq(min(av_gdpcon44$Year), max(av_gdpcon44$Year), 1)) +
+  scale_y_continuous(limits = c(0.32, 0.64), breaks = seq(0.32, 0.64, 0.04)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.box = "horizontal") +
+  theme(legend.direction = "vertical") +
+  theme(legend.position = c(0.56, 0.9)) +
+  theme(legend.background = element_rect(fill = "transparent")) +
+  theme(legend.spacing.y = unit(0.0001, "mm"))+
+  theme(legend.title = element_blank())+
+  theme(legend.key.size=unit(0.5, "cm"))
+mld44_plot
+```
+
+#### Weighted MLD with or without China and India (for 144 countries)
+```{r tidy=TRUE}
+mldnc <- nchina %>% group_by(Year) %>%
+  summarise(mldgdp_nC = mld.wtd(pc_gdp, pop), mldcon_nC = mld.wtd(pcon, pop))
+
+mldni <- nindia %>% group_by(Year) %>%
+  summarise(mldgdp_nI = mld.wtd(pc_gdp, pop), mldcon_nI= mld.wtd(pcon, pop))
+
+mldnUS <- nUS %>% group_by(Year) %>%
+  summarize(mldgdp_nUS = mld.wtd(pc_gdp, pop), mldcon_nUS = mld.wtd(pcon, pop))
+
+gc_mld <- gdp_con44 %>% group_by(Year) %>%
+  summarise(mld_gdp = mld.wtd(pc_gdp, pop), mld_con = mld.wtd(pcon, pop), ncon=n())
+
+mldgc44 <- list(gc_mld, mldnc, mldni, mldnUS) %>% reduce(left_join, by = "Year")
+```
+
+#### MLD with or without India, China, or US
+```{r tidy=TRUE}
+mldgc144 <- mldgc44
+mldgc144$`ncon`<- NULL
+mldgc144 <- reshape2::melt(mldgc144, id.vars="Year")
+
+mldgc144$Weight <- ifelse((mldgc144$variable == "mld_gdp") | (mldgc144$variable == "mldgdp_nC") 
+                         |(mldgc144$variable == "mldgdp_nI") | (mldgc144$variable == "mldgdp_nUS"), 
+                         "Per capita GDP", "Per capita consumption")
+
+mldgc144$Group <- ifelse((mldgc144$variable == "mld_gdp") |(mldgc144$variable == "mld_con"), "All",
+                          ifelse((mldgc144$variable == "mldgdp_nC") |(mldgc144$variable == "mldcon_nC"), "Without China",
+                                 ifelse((mldgc144$variable == "mldgdp_nI") |(mldgc144$variable == "mldcon_nI"), "Without India",
+                          "Without US")))
+mldgc144$Group <- factor(mldgc144$Group, levels=c("All","Without China", "Without India", "Without US"))
+mldgc144$Weight <- factor(mldgc144$Weight, levels=c("Per capita GDP","Per capita consumption"))
+```
+
+#### plot
+```{r tidy=TRUE}
+mld_gc44 <- ggplot(mldgc144, aes(x = Year))+
+  geom_line(aes(y = value, color = Group, linetype = Weight)) +
+  scale_linetype_manual(values=c("solid","dotted")) +
+  scale_colour_manual(values=c("black", "blue","red", "green")) +  
+  guides(linetype = guide_legend(order = 1),col = guide_legend(order = 2))+
+  labs(x = "Year", y ="Population Weighted MLD")+
+  theme(text=element_text(size=8))+
+  scale_x_continuous(breaks = seq(min(mldgc144$Year), max(mldgc144$Year), 1)) +
+  scale_y_continuous(breaks = seq(0.24, 0.66, 0.04), limits = c(0.24,0.66)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5)) +
+  theme(legend.title = element_blank()) +
+  theme(legend.direction = "vertical") +
+  theme(legend.position = c(0.58, 0.88)) +
+  theme(legend.box = "horizontal")+
+  theme(legend.spacing.y = unit(0, "lines"))+
+  theme(legend.key.width = unit(0.4, 'cm')) +
+  theme(legend.key.size= unit(0.4, "cm")) +
+  theme(legend.key.height = unit(0.4, "cm"))+
+  theme(legend.text=element_text(size=7))+
+  theme(legend.background = element_rect(fill = "transparent"))
+```
+#### Plot together
+
+```{r fig.height = 3.5, fig.width = 7, fig.align = "center"}
+mld_plot <-ggarrange(mld44_plot, mld_gc44, labels = c("a", "b"), hjust = -5, 
+                     font.label = list(size = 8, color = "black", face = "plain"), 
+                     ncol = 2, nrow = 1)
+
+file.plot <- file.path(dir.plots, "mld_plot.png")
+png(file.plot, height=3.5, width=7, units="in", bg="white", res=300)
+mld_plot
+dev.off()
+```
+
+#### per capita GDP and Consumption of US,India and China
+```{r tidy=TRUE}
+data_CIU <- dat_all %>% filter(Country %in% c("China", "India", "United States"))
+data_CIU <- data_CIU %>% select("Country", "Year", "pcon", "pc_gdp")
+data_CIU <- data_CIU[order(data_CIU$Country, data_CIU$Year),]
+
+file.output <- file.path(dir.outdata, "data_CIU.csv")
+write.table(data_CIU, file.output, sep=",", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+
+#### 2019 and 2020 for selected countries
+```{r tidy=TRUE}
+gdp_con2019 <- gdp_con44_2019 %>% select(Code,Country, pop, in_class, Year, pc_gdp, pcon)
+gdp_con2020 <-gdp_con44_2020 %>% select(Code, Country, pop, in_class, Year, pc_gdp, pcon)
+gdp_condata <- merge(gdp_con2019, gdp_con2020, by = "Code", suffixes = c("_2019", "_2020"))
+
+# Calculate the GDP growth rate
+gdp_condata$gdp_growth <- ((gdp_condata$pc_gdp_2020 - gdp_condata$pc_gdp_2019) / gdp_condata$pc_gdp_2019) * 100
+gdp_condata$con_growth <- ((gdp_condata$pcon_2020 - gdp_condata$pcon_2019) / gdp_condata$pcon_2019) * 100
+gdp_condata[order(gdp_condata$pc_gdp_2019),]
+```
+
+
+#### GDP growth rate 2019 to 2020
+```{r tidy=TRUE}
+library("ggrepel")
+
+gdp_condata$ccode <- gdp_condata$Code %in% c("TLS", "COD", "CPV", "ETH", "BRA", "IDN", "PAK", "IND", "CHN", 
+                                            "MEX", "JPN", "FRA", "GBR", "RUS", "BHS", "IRL", "USA", "MAC")
+
+gdp_growthplot <- ggplot(gdp_condata, aes(x = reorder(Code, pc_gdp_2019), y=gdp_growth, color=in_class_2019)) + 
+  geom_point(size=1)+
+  geom_hline(data = ggrowth_mean, aes(yintercept= -3.84), linetype="dotted", linewidth = 0.5)+
+  theme_minimal() +
+  labs(x = "", y = "Per capita GDP growth rate (%)")+
+  theme(axis.title.y=element_text(size=9), axis.text.x=element_blank())+
+  theme(text=element_text(size=8))+
+  geom_text_repel(data = subset(gdp_condata, ccode),
+                 mapping = aes(x= Code, y=gdp_growth, label = Code), color = "black", size = 2)+
+  theme(legend.title = element_blank()) +
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "none") +
+  theme(legend.box = "horizontal")+
+  theme(legend.text=element_text(size=8))+
+  #theme(legend.background = element_rect(fill = "transparent"))+
+  theme(legend.key.height = unit(0.5, "cm"))+
+  scale_color_discrete(breaks=c('H',"UM", "LM",'L'), labels=c('High Income', "Upper Middle Income", 'Lower Middle Income', "Low Income"))
+gdp_growthplot
+```
+
+
+#### Consumption growth rate (2019 to 2020)
+```{r tidy=TRUE}
+
+gdp_condata$concode <- gdp_condata$Code %in% c("TLS", "DJI", "GNB", "COD", "BLZ", "PSE", "ETH", "BRA", "PER", "IDN", "MUS", "GEO", "CHN", 
+                                            "MEX", "OMN", "JPN", "FRA", "GBR", "RUS", "HKG", "BHS", "IRL", "USA", "MAC")
+
+con_growthplot <- ggplot(gdp_condata, aes(x = reorder(Code, pc_gdp_2019), y=con_growth, color=in_class_2019)) + 
+  geom_point(size=1)+
+  geom_hline(data = cgrowth_mean, aes(yintercept= -5.19), linetype="dotted", linewidth = 0.5)+
+  theme_minimal() +
+  theme(axis.title.y = element_text(size =9),legend.position = "none")+
+  labs(x = "", y = "Per capita consumption growth rate (%)")+
+  theme(text=element_text(size=8))+
+  theme(axis.text.x=element_blank())+
+  scale_y_continuous(breaks = seq(-30, 15, 5), limits = c(-30, 15)) +
+  geom_text_repel(data = subset(gdp_condata, concode),
+                 mapping = aes(x= Code, y=con_growth, label = Code), color = "blue3", size = 2)+
+  theme(legend.title = element_blank()) +
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "none") +
+  theme(legend.box = "horizontal")+
+  theme(legend.key.height = unit(0.5, "cm"))+
+  theme(legend.text=element_text(size=7))+
+  #theme(legend.background = element_rect(fill = "transparent"))+
+  #theme(legend.box.background = element_blank()) +
+  scale_color_discrete(breaks=c('H',"UM", "LM",'L'), labels=c('High Income', "Upper Middle Income", 'Lower Middle Income', "Low Income"))
+con_growthplot   
+```
+
+#### Plot gdp and consumption grwoth plots together
+
+```{r fig.height = 3.5, fig.width = 7, fig.align = "center"}
+gdpcon_growth_plot <-ggarrange(gdp_growthplot, con_growthplot, labels = c("a", "b"), hjust = -5, 
+                     font.label = list(size = 8, color = "black", face = "plain"), 
+                     ncol = 2, nrow = 1, common.legend = TRUE, legend = "bottom")
+gdpcon_growth_plot <- annotate_figure(gdpcon_growth_plot, bottom = text_grob("Countries (ranked by 2019 GDP per capita)", 
+                      vjust= -5, size =9))
+
+
+file.plot <- file.path(dir.plots, "gdpcon_growth_plot.png")
+png(file.plot, height=3.5, width=7, units="in", bg="white", res=300)
+gdpcon_growth_plot
+dev.off()
+```

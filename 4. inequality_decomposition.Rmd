@@ -1,0 +1,971 @@
+---
+title: "Inequality Decompostion"
+output: html_document
+
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'Inequality Decompotions.html'))})
+---
+
+#### Define Libraries
+```{r echo=TRUE, message=FALSE, warning=FALSE, tidy=TRUE)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(magrittr)
+library(foreign)  # read data
+library(dineq)
+library(reldist)
+library(ggpubr) # arrange graphs
+library(IC2)
+library(tidyverse)
+```
+
+#### Define Path
+```{r tidy=TRUE}
+dir.wrk <- getwd()
+dir.data <- file.path(dir.wrk, "dataset/data")
+dir.outdata <- file.path(dir.wrk, "dataset/outputdata")
+dir.plots <- file.path(dir.wrk, "dataset/plots")
+```
+
+#### Define Files
+```{r tidy=TRUE}
+file.gdp_pop <- file.path(dir.outdata, "gdp_pop.csv")
+file.con_pop <- file.path(dir.outdata, "con_pop.csv")
+file.gdp <- file.path(dir.data, "percapita_gdp2017_ppp.csv")
+file.cons <- file.path(dir.data, "consumption_expenditure2017_ppp.csv")
+```
+
+#### Per capita GDP and Population Data 
+```{r tidy=TRUE}
+gdp_data <- read.csv(file.gdp_pop, header=T, stringsAsFactors = FALSE)
+gdp_data <- gdp_data %>% select(2:8)
+head(gdp_data)
+```
+
+#### Data from 2021 as the reference (2021 has 189 countries)
+```{r tidy=TRUE}
+gdp_2021 <- gdp_data %>% filter(Year == 2021)
+gdp_21_code <- gdp_2021 %>% select(1, 2)
+```
+
+#### Data from 2000 to 2021
+
+```{r tidy=TRUE}
+dat_gdp <- inner_join(gdp_21_code, gdp_data)
+dat_gdp <- dat_gdp[order(dat_gdp$Country, dat_gdp$Year),]
+```
+
+#### Mean Per Capita GDP and Per capita gdp Gini index by Year 2013-2021 (189 countries)
+```{r tidy=TRUE}
+mean_gdp <- dat_gdp %>% group_by(Year) %>%
+  summarize(mean_gdp=mean(gdp), wtmean_gdp=weighted.mean(gdp, pop),nc_gdp = n())
+
+tail(mean_gdp)
+
+gdp_gini <- dat_gdp %>% group_by(Year) %>%
+  summarize(ginigdp = gini.wtd(gdp), wgini_gdp = gini.wtd(gdp, pop), n())
+view(gdp_gini)
+```
+
+#### Per Capita GDP Gini by Region
+###  East Asia and Pacific (EAS) 
+```{r tidy=TRUE}
+eas_gdp <- dat_gdp %>% filter(Region == "EAS")
+eas_gdp <- eas_gdp %>% group_by(Year) %>%
+  summarise(gini_eas = gini.wtd(gdp), wgini_eas = gini.wtd(gdp, pop), n_eas=n())
+```
+
+#### Europe and Central Asia (ECS)
+```{r tidy=TRUE}
+ecs_gdp <- dat_gdp %>% filter(Region == "ECS")
+ecs_gdp <- ecs_gdp %>% group_by(Year) %>%
+  summarise(gini_ecs = gini.wtd(gdp), wgini_ecs = gini.wtd(gdp, pop), n_ecs = n())
+```
+
+#### Latin America and Carribean (LCN)
+```{r include=TRUE}
+lcn_gdp <- dat_gdp %>% filter(Region == "LCN")
+lcn_gdp <- lcn_gdp %>% group_by(Year) %>%
+  summarise(gini_lcn = gini.wtd(gdp), wgini_lcn = gini.wtd(gdp, pop), n_lcn =n())
+```
+
+#### Middle East and North Africa (MEA)
+```{r tidy=TRUE}
+mea_gdp <- dat_gdp %>% filter(Region == "MEA")
+mea_gdp <- mea_gdp %>% group_by(Year) %>%
+  summarise(gini_mea = gini.wtd(gdp), wgini_mea = gini.wtd(gdp, pop), n_mea = n())
+```
+
+#### North America (NAC) 
+```{r tidy=TRUE}
+nac_gdp <- dat_gdp %>% filter(Region == "NAC")
+nac_gdp <- nac_gdp %>% group_by(Year) %>%
+  summarise(gini_nac = gini.wtd(gdp), wgini_nac = gini.wtd(gdp, pop), n_nac = n())
+```
+
+#### South Asia (SAS)
+```{r tidy=TRUE}
+sas_gdp <- dat_gdp %>% filter(Region == "SAS")
+sas_gdp <- sas_gdp %>% group_by(Year) %>%
+  summarise(gini_sas = gini.wtd(gdp), wgini_sas = gini.wtd(gdp, pop), n_sas = n())
+```
+
+#### Sub Saharan Africa (SSF)
+```{r tidy=TRUE}
+ssf_gdp <- dat_gdp %>% filter(Region == "SSF")
+ssf_gdp <- ssf_gdp %>% group_by(Year) %>%
+  summarise(gini_ssf = gini.wtd(gdp), wgini_ssf = gini.wtd(gdp, pop), n_ssf =n())
+```
+
+#### merge the per capita gdp gini tables by REGION
+```{r tidy=TRUE}
+ggdp_region <- list(eas_gdp, ecs_gdp, lcn_gdp, mea_gdp, nac_gdp, sas_gdp, ssf_gdp) %>% reduce(left_join, by = "Year")
+```
+
+#### Gini by Region OUTPUT FILE --
+```{r tidy=TRUE}
+file.output <- file.path(dir.outdata, "gdp_region.csv")
+write.table(ggdp_region, file.output, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Per Capita GDP Gini by Income Class
+### Low Income (L)
+```{r tidy=TRUE}
+low_gdp <- dat_gdp %>% filter(in_class == "L")
+low_gdp <- low_gdp %>% group_by(Year) %>%
+  summarise(gini_low = gini.wtd(gdp), wgini_low = gini.wtd(gdp, pop), n_low =n())
+```
+
+#### Low Middle Income (LM)
+```{r tidy=TRUE}
+lm_gdp <- dat_gdp %>% filter(in_class == "LM")
+lm_gdp <- lm_gdp %>% group_by(Year) %>%
+  summarise(gini_lm = gini.wtd(gdp), wgini_lm = gini.wtd(gdp, pop), n_lm =n())
+```
+
+#### Upper Middle Income (UM)
+```{r tidy=TRUE}
+um_gdp <- dat_gdp %>% filter(in_class == "UM")
+um_gdp <- um_gdp %>% group_by(Year) %>%
+  summarise(gini_um = gini.wtd(gdp), wgini_um = gini.wtd(gdp, pop), n_um =n())
+```
+
+#### High Income (H)
+```{r tidy=TRUE}
+hi_gdp <- dat_gdp %>% filter(in_class == "H")
+hi_gdp <- hi_gdp %>% group_by(Year) %>%
+  summarise(gini_hi = gini.wtd(gdp), wgini_hi = gini.wtd(gdp, pop), n_hi =n())
+```
+
+#### merge the per capita gdp by Income Class
+```{r tidy=TRUE}
+ggdp_incomeclass <- list(low_gdp, lm_gdp, um_gdp, hi_gdp) %>% reduce(left_join, by = "Year")
+```
+
+#### Gini by Income Class OUTPUT FILE --
+```{r tidy=TRUE}
+
+file.output <- file.path(dir.outdata, "gdp_incomeclass.csv")
+write.table(ggdp_incomeclass, file.output, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Per Capita CONSUMPTIOM Expenditure (144 countries from 2016 to 2021)
+```{r tidy=TRUE}
+con_data <- read.csv(file.con_pop, header=T, stringsAsFactors = FALSE)
+con_data <- con_data %>% select(2:8)
+```
+
+#### Consumption data
+```{r tidy=TRUE}
+con_2019 <- con_data %>% filter(Year == 2019)
+con_2020 <-con_data %>% filter(Year == 2020)
+con_2021 <-con_data %>% filter(Year == 2021)
+
+con_19_code <- con_2019 %>% select(1, 2)
+con_20_code <- con_2020 %>% select(1, 2)
+con_21_code <- con_2021 %>% select(1, 2)
+con_code <- list(con_19_code, con_20_code, con_21_code) %>% reduce(inner_join)
+```
+
+#### Data from 2000 to 2021
+```{r tidy=TRUE}
+dat_con <- inner_join(con_code, con_data)
+dat_con <- dat_con[order(dat_con$Country, dat_con$Year),]
+
+pop_sum <- dat_con %>% group_by(Year) %>% summarize(psum=sum(pop)) 
+view(pop_sum)
+
+file.output <- file.path(dir.outdata, "dat_con.csv")
+write.table(dat_con, file.output, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Mean Consumption Expenditure 2016-2021 (144 countries)
+```{r tidy=TRUE}
+mean_con <- dat_con %>% group_by(Year) %>%
+  dplyr::summarize(mean_con=mean(pcon), wtmean_con=weighted.mean(pcon, pop),nc_con = n())
+
+tail(mean_con)
+
+mean_gdpcon <- cbind(mean_gdp, mean_con) ### 2013 to 2021 have 189 countries
+mean_gdpcon <- mean_gdpcon %>% select(1:4, 6:8)
+mean_gdpcon
+```
+
+#### Mean GDP (for 189) and mean Consumption for 144 countries
+```{r tidy=TRUE}
+mgc <- ggplot(mean_gdpcon, aes(x=Year)) + 
+  geom_line(aes(y=mean_gdp, color = "Mean Per Capita GDP"), linetype ="dashed")+
+  geom_line(aes(y=mean_con, color = "Mean Per Capita Expenditure"), linetype ="dashed")+
+  geom_line(aes(y=wtmean_gdp, color = "Mean Per Capita GDP"), linetype ="solid")+
+  geom_line(aes(y=wtmean_con, color = "Mean Per Capita Expenditure"), linetype ="solid")+
+  scale_color_discrete(name = "Line Color", limits=c("Mean Per Capita GDP", 
+                                                     "Mean Per Capita Expenditure"))+
+  scale_linetype_manual(name= "Line Type", values=c( "Population Weighted" = "solid","Unweighted" = "dashed"))+
+  labs(x = "Year",
+       y = "Mean Per Capita GDP or Expenditure \n(PPP, 2017 International $)")+
+  geom_line(aes(y=mean_gdp, linetype ="dashed"))+
+  geom_line(aes(y=mean_con, linetype ="dashed"))+
+  geom_line(aes(y=wtmean_gdp, linetype ="solid"))+
+  geom_line(aes(y=wtmean_con, linetype ="solid"))+
+  theme(axis.title.x = element_text(size=11)) +
+  theme(axis.title.y = element_text(size=11)) +
+  scale_x_continuous(breaks = seq(min(mean_gdpcon$Year), max(mean_gdpcon$Year), 1)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  #theme(axis.text.y=element_blank())+
+  scale_y_continuous(limits = c(6000, 22000), breaks = seq(6000, 22000, 4000)) +
+  theme(legend.box = "vertical") +
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "top") +
+  theme(legend.spacing.y = unit(0, "lines"))
+mgc
+```
+
+#### Per capita gdp Gini index by Year (2016-2021 144 countries, 140+ from 2012)
+```{r tidy=TRUE}
+con_gini <- dat_con %>% group_by(Year) %>%
+  summarize(gini_con = gini.wtd(pcon), wgini_con = gini.wtd(pcon, pop), n())
+view(con_gini)
+```
+
+####Gini Index of Per Capita expenditure by Region
+### East Asia and Pacific (EAS)
+```{r tidy=TRUE}
+eas_con <- dat_con %>% filter(Region == "EAS")
+eas_con <- eas_con %>% group_by(Year) %>%
+  summarise(gini_eas = gini.wtd(pcon), wgini_eas = gini.wtd(pcon, pop), n_eas =n())
+```
+
+#### Europe and Central Asia (ECS)
+```{r tidy=TRUE}
+ecs_con <- dat_con %>% filter(Region == "ECS")
+ecs_con <- ecs_con %>% group_by(Year) %>%
+  summarise(gini_ecs = gini.wtd(pcon), wgini_ecs = gini.wtd(pcon, pop), n_ecs =n())
+```
+
+#### Latin America and Carribean (LCN)
+```{r tidy=TRUE}
+lcn_con<- dat_con %>% filter(Region == "LCN")
+lcn_con <- lcn_con %>% group_by(Year) %>%
+  summarise(gini_lcn = gini.wtd(pcon), wgini_lcn = gini.wtd(pcon, pop), n_lcn =n())
+```
+
+#### Middle East and North Africa (MEA)
+```{r tidy=TRUE}
+mea_con <- dat_con %>% filter(Region == "MEA")
+mea_con <- mea_con %>% group_by(Year) %>%
+  summarise(gini_mea = gini.wtd(pcon), wgini_mea = gini.wtd(pcon, pop), n_mea =n())
+```
+
+#### North America (NAC)
+```{r tidy=TRUE}
+nac_con <- dat_con %>% filter(Region == "NAC")
+nac_con <- nac_con %>% group_by(Year) %>%
+  summarise(gini_nac = gini.wtd(pcon), wgini_nac = gini.wtd(pcon, pop), n_nac =n())
+```
+
+#### South Asia (SAS)
+```{r tidy=TRUE}
+sas_con <- dat_con %>% filter(Region == "SAS")
+sas_con <- sas_con %>% group_by(Year) %>%
+  summarise(gini_sas = gini.wtd(pcon), wgini_sas = gini.wtd(pcon, pop), n_sas =n())
+```
+
+#### Sub Saharan Africa (SSF)
+```{r tidy=TRUE}
+ssf_con <- dat_con %>% filter(Region == "SSF")
+ssf_con <- ssf_con %>% group_by(Year) %>%
+  summarise(gini_ssf = gini.wtd(pcon), wgini_ssf = gini.wtd(pcon, pop), n_ssf =n())
+```
+
+#### merge the consumption expenditure gini tables by REGION
+```{r tidy=TRUE}
+gcon_region <- list(eas_con, ecs_con, lcn_con, mea_con, nac_con, sas_con, ssf_con) %>% reduce(left_join, by = "Year")
+write.csv(gcon_region, "C:/Users/shres/OneDrive/Desktop/Income Inequality/gcon_region.csv")
+```
+
+#### Per Capita expenditure Gini by Income Class
+### Low Middle Income (LM)
+```{r tidy=TRUE}
+lm_con <- dat_con %>% filter(in_class == "LM")
+lm_con <- lm_con %>% group_by(Year) %>%
+  summarise(gini_lm = gini.wtd(pcon), wgini_lm = gini.wtd(pcon, pop), n_lm =n())
+```
+
+#### Upper Middle Income (UM)
+```{r tidy=TRUE}
+um_con <- dat_con %>% filter(in_class == "UM")
+um_con <- um_con %>% group_by(Year) %>%
+  summarise(gini_um = gini.wtd(pcon), wgini_um = gini.wtd(pcon, pop), n_um =n())
+```
+
+#### High Income (H)
+```{r tidy=TRUE}
+hi_con <- dat_con %>% filter(in_class == "H")
+hi_con <- hi_con %>% group_by(Year) %>%
+  summarise(gini_hi = gini.wtd(pcon), wgini_hi = gini.wtd(pcon, pop), n_hi =n())
+```
+
+#### Low Income (L)
+```{r tidy=TRUE}
+low_con <- dat_con %>% filter(in_class == "L")
+low_con <- low_con %>% group_by(Year) %>%
+  summarise(gini_low = gini.wtd(pcon), wgini_low = gini.wtd(pcon, pop), n_low =n())
+```
+
+#### merge the consumption expenditure gini tables by Income Class
+```{r tidy=TRUE}
+gcon_incomeclass <- list(low_con, lm_con, um_con, hi_con) %>% reduce(left_join, by = "Year")
+
+file.output <- file.path(dir.outdata, "gcon_incomeclass.csv")
+write.table(gcon_incomeclass, file.output, sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+```
+
+#### Decomposition by population subgroups (Mookharjee and Shorrocks, 1982)
+### Per Capita GDP Gini_Decomposition by Year and Region
+```{r tidy=TRUE}
+library(hash)
+
+by_year <- function(dat_gdp, yr) {
+  return(dat_gdp %>% filter(Year == yr))
+}
+```
+
+#### population weighted Gini by REGION
+```{r tidy=TRUE}
+w_gdpr <- function(dat_gdp){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_gdp, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$gdp, z=ha[[i]]$Region, weights = ha[[i]]$pop)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+gdpr_wdecomp <- w_gdpr(dat_gdp)
+```
+
+#### Parse Hash Function Output
+```{r tidy=TRUE}
+wgdpr_decomp <- as.list(gdpr_wdecomp)
+wgr <- lapply(wgdpr_decomp, function(x) x[1]$gini_decomp)
+wgdpr_d <- do.call(rbind.data.frame, wgr)
+wgdpr_d <- cbind(Year=as.numeric(rownames(wgdpr_d)), wgdpr_d)
+rownames(wgdpr_d) <- NULL
+wgdpr_d <- wgdpr_d[order(wgdpr_d$Year, decreasing = FALSE),]
+wgdpr_d <- wgdpr_d %>% rename(wgini=gini_total, w_within=gini_within, 
+                              w_between=gini_between, w_overlap=gini_overlap)
+```
+
+#### Unweighted Gini by REGION
+```{r tidy=TRUE}
+un_gdpr <- function(dat_gdp){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_gdp, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$gdp, z=ha[[i]]$Region)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+gdpr_undecomp <- un_gdpr(dat_gdp)
+```
+
+#### Parse Hash Function
+```{r tidy=TRUE}
+ungdpr_decomp <- as.list(gdpr_undecomp)
+ungr <- lapply(ungdpr_decomp, function(x) x[1]$gini_decomp)
+ungdpr_decomp <- do.call(rbind.data.frame, ungr)
+ungdpr_decomp <- cbind(Year=as.numeric(rownames(ungdpr_decomp)), ungdpr_decomp)
+rownames(ungdpr_decomp) <- NULL
+ungdpr_d <- ungdpr_decomp[order(ungdpr_decomp$Year, decreasing = FALSE),]
+ungdpr_d <- ungdpr_d %>% rename(ungini=gini_total, un_within=gini_within, 
+                                un_between=gini_between, un_overlap=gini_overlap)
+```
+
+#### Merge weighted and unweighted Gini and Decomposition by Region 
+```{r tidy=TRUE}
+decomp_gdp_region <- cbind(wgdpr_d, ungdpr_d)
+decomp_gdp_region <- decomp_gdp_region %>% dplyr::select(1:5, 7:10)
+decomp_gdp_region
+
+gr1 <- ggplot(decomp_gdp_region, aes(x = Year))+
+  geom_line(aes(y = wgini, color = "Overall Gini"), linetype = "solid", size= 1.0)+
+  geom_line(aes(y = w_between, color = "Between"), linetype = "solid")+
+  geom_line(aes(y = w_within, color = "Within"), linetype = "solid")+
+  geom_line(aes(y = w_overlap, color = "Overlap"), linetype ="solid")+
+  geom_line(aes(y = ungini, color = "Overall Gini"), linetype ="dashed", size =1.0)+
+  geom_line(aes(y = un_between, color = "Between"), linetype = "dashed")+
+  geom_line(aes(y = un_within, color = "Within"), linetype = "dashed")+
+  geom_line(aes(y = un_overlap, color = "Overlap"), linetype = "dashed")+
+  scale_colour_manual(values=c("Overall Gini" = "black", "Between" = "blue",
+                               "Within" = "red", "Overlap" = "green"))+
+  geom_line(aes(y = wgini, linetype = "solid"))+
+  geom_line(aes(y = w_between, linetype = "solid"))+
+  geom_line(aes(y = w_within, linetype = "solid"))+
+  geom_line(aes(y = w_overlap, linetype ="solid"))+
+  geom_line(aes(y = ungini, linetype="dashed"))+
+  geom_line(aes(y = un_between, linetype="dashed"))+
+  geom_line(aes(y = un_within, linetype="dashed"))+
+  geom_line(aes(y = un_overlap, linetype="dashed"))+
+  scale_linetype_manual(values=c( "Weighted" = "solid","Unweighted" = "dashed"))+
+  labs(x = "Year", y = "Per Capita GDP Gini Decomposition \n By Region")+
+  theme(text=element_text(size=11))+
+  scale_x_continuous(breaks = seq(min(decomp_gdp_region$Year), max(decomp_gdp_region$Year), 1)) +
+  scale_y_continuous(limits = c(0, 0.60), breaks = seq(0, 0.60, 0.1)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "bottom")+
+  theme(legend.box = "vertical")+
+  theme(legend.spacing.y = unit(0, "lines"))
+gr1
+```
+
+#### Per Capita GDP Gini decomposition by income class
+### population weighted
+```{r tidy=TRUE}
+w_inr <- function(dat_gdp){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_gdp, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$gdp, z=ha[[i]]$in_class, weights = ha[[i]]$pop)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+gdpin_wdecomp <- w_inr(dat_gdp)
+```
+
+#### Parse Hash Function
+```{r tidy=TRUE}
+winr_decomp <- as.list(gdpin_wdecomp)
+winr <- lapply(winr_decomp, function(x) x[1]$gini_decomp)
+winr_d <- do.call(rbind.data.frame, winr)
+winr_d <- cbind(Year=as.numeric(rownames(winr_d)), winr_d)
+rownames(winr_d) <- NULL
+winr_d <- winr_d[order(winr_d$Year, decreasing = FALSE),]
+winr_d <- winr_d %>% rename(wgini=gini_total, w_within=gini_within, 
+                              w_between=gini_between, w_overlap=gini_overlap)
+```
+
+#### unweighted by income class
+```{r tidy=TRUE}
+un_inr <- function(dat_gdp){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_gdp, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$gdp, z=ha[[i]]$in_class)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+gdpin_undecomp <- un_inr(dat_gdp)
+```
+
+#### Parse Hash fuction
+```{r tidy=TRUE}
+uninr_decomp <- as.list(gdpin_undecomp)
+uninr <- lapply(uninr_decomp, function(x) x[1]$gini_decomp)
+uninr_decomp <- do.call(rbind.data.frame, uninr)
+uninr_decomp <- cbind(Year=as.numeric(rownames(uninr_decomp)), uninr_decomp)
+rownames(uninr_decomp) <- NULL
+uninr_d <- uninr_decomp[order(uninr_decomp$Year, decreasing = FALSE),]
+uninr_d <- uninr_d %>% rename(ungini=gini_total, un_within=gini_within, 
+                                un_between=gini_between, un_overlap=gini_overlap)
+```
+
+#### Merge weighted and unweighted Gini and Decomposition by Income Class 
+```{r tidy=TRUE}
+decomp_gdpin <- cbind(winr_d, uninr_d)
+decomp_gdpin <- decomp_gdpin %>% select(1:5, 7:10)
+decomp_gdpin
+
+gin1 <- ggplot(decomp_gdpin, aes(x = Year))+
+  geom_line(aes(y = wgini, color = "Overall Gini"), linetype = "solid", size=1.0)+
+  geom_line(aes(y = w_between, color = "Between"), linetype = "solid")+
+  geom_line(aes(y = w_within, color = "Within"), linetype = "solid")+
+  geom_line(aes(y = w_overlap, color = "Overlap"), linetype ="solid")+
+  geom_line(aes(y = ungini, color = "Overall Gini"), linetype ="dashed", size =1.0)+
+  geom_line(aes(y = un_between, color = "Between"), linetype = "dashed")+
+  geom_line(aes(y = un_within, color = "Within"), linetype = "dashed")+
+  geom_line(aes(y = un_overlap, color = "Overlap"), linetype = "dashed")+
+  scale_colour_manual(values=c("Overall Gini" = "black", "Between" = "blue",
+                               "Within" = "red", "Overlap" = "green"))+
+  geom_line(aes(y = wgini, linetype = "solid"))+
+  geom_line(aes(y = w_between, linetype = "solid"))+
+  geom_line(aes(y = w_within, linetype = "solid"))+
+  geom_line(aes(y = w_overlap, linetype ="solid"))+
+  geom_line(aes(y = ungini, linetype="dashed"))+
+  geom_line(aes(y = un_between, linetype="dashed"))+
+  geom_line(aes(y = un_within, linetype="dashed"))+
+  geom_line(aes(y = un_overlap, linetype="dashed"))+
+  scale_linetype_manual(values=c( "Weighted" = "solid","Unweighted" = "dashed"))+
+  labs(x = "Year", y = "By Income Class")+
+  theme(text=element_text(size=11))+
+  scale_x_continuous(breaks = seq(min(decomp_gdpin$Year), max(decomp_gdpin$Year), 1)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(axis.text.y=element_blank())+
+  theme(axis.ticks.y=element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "bottom") +
+  theme(legend.box = "vertical")+
+  scale_y_continuous(limits = c(0, 0.60), breaks = seq(0, 0.60, 0.1))+
+  theme(legend.spacing.y = unit(0, "lines"))
+gin1
+
+decomp_gdp <- ggarrange(gr1, gin1, labels = c("a", "b"), hjust = -3.5, vjust = 1.5,
+          font.label = list(size = 12, color = "black", face = "plain"), ncol = 2, nrow = 1,
+          common.legend = TRUE, legend="bottom")
+decomp_gdp
+```
+
+#### Per Capita Consumption Expenditure Gini_Decomposition by Year, Region and Income Class
+### population weighted Gini by REGION
+```{r tidy=TRUE}
+w_conr <- function(dat_con){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_con, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$pcon, z=ha[[i]]$Region, weights = ha[[i]]$pop)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+
+conr_wdecomp <- w_conr(dat_con)
+```
+
+#### Parse Hash Function Output
+```{r tidy=TRUE}
+wconr_decomp <- as.list(conr_wdecomp)
+wcr <- lapply(wconr_decomp, function(x) x[1]$gini_decomp)
+wconr_d <- do.call(rbind.data.frame, wcr)
+wconr_d <- cbind(Year=as.numeric(rownames(wconr_d)), wconr_d)
+rownames(wconr_d) <- NULL
+wconr_d <- wconr_d[order(wconr_d$Year, decreasing = FALSE),]
+wconr_d <- wconr_d %>% rename(wgini=gini_total, w_within=gini_within, 
+                              w_between=gini_between, w_overlap=gini_overlap)
+```
+
+#### Unweighted Gini by REGION
+```{r tidy=TRUE}
+un_conr <- function(dat_con){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_con, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$pcon, z=ha[[i]]$Region)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+conr_undecomp <- un_conr(dat_con)
+```
+
+#### Parse Hash Function
+```{r tidy=TRUE}
+unconr_decomp <- as.list(conr_undecomp)
+uncr <- lapply(unconr_decomp, function(x) x[1]$gini_decomp)
+unconr_decomp <- do.call(rbind.data.frame, uncr)
+unconr_decomp <- cbind(Year=as.numeric(rownames(unconr_decomp)), unconr_decomp)
+rownames(unconr_decomp) <- NULL
+unconr_d <- unconr_decomp[order(unconr_decomp$Year, decreasing = FALSE),]
+unconr_d <- unconr_d %>% rename(ungini=gini_total, un_within=gini_within, 
+                                un_between=gini_between, un_overlap=gini_overlap)
+```
+
+#### Merge weighted and unweighted Gini and Decomposition by Region 
+```{r tidy=TRUE}
+decomp_conr <- cbind(wconr_d, unconr_d)
+decomp_conr <- decomp_conr %>% dplyr::select(1:5, 7:10)
+decomp_conr
+
+cr1 <- ggplot(decomp_conr, aes(x = Year))+
+  geom_line(aes(y = wgini, color = "Overall Gini"), linetype = "solid", size = 1.0)+
+  geom_line(aes(y = w_between, color = "Between"), linetype = "solid")+
+  geom_line(aes(y = w_within, color = "Within"), linetype = "solid")+
+  geom_line(aes(y = w_overlap, color = "Overlap"), linetype ="solid")+
+  geom_line(aes(y = ungini, color = "Overall Gini"), linetype ="dashed", size = 1.0)+
+  geom_line(aes(y = un_between, color = "Between"), linetype = "dashed")+
+  geom_line(aes(y = un_within, color = "Within"), linetype = "dashed")+
+  geom_line(aes(y = un_overlap, color = "Overlap"), linetype = "dashed")+
+  scale_colour_manual(values=c("Overall Gini" = "black", "Between" = "blue",
+                               "Within" = "red", "Overlap" = "green"))+
+  geom_line(aes(y = wgini, linetype = "solid"))+
+  geom_line(aes(y = w_between, linetype = "solid"))+
+  geom_line(aes(y = w_within, linetype = "solid"))+
+  geom_line(aes(y = w_overlap, linetype ="solid"))+
+  geom_line(aes(y = ungini, linetype="dashed"))+
+  geom_line(aes(y = un_between, linetype="dashed"))+
+  geom_line(aes(y = un_within, linetype="dashed"))+
+  geom_line(aes(y = un_overlap, linetype="dashed"))+
+  scale_linetype_manual(values=c( "Weighted" = "solid","Unweighted" = "dashed"))+
+  labs(x = "Year", y = "Per Capita Expenditure Gini Decomposition \n By Region")+
+  theme(text=element_text(size=11))+
+  scale_x_continuous(breaks = seq(min(decomp_conr$Year), max(decomp_conr$Year), 1)) +
+  scale_y_continuous(limits = c(0, 0.60), breaks = seq(0, 0.60, 0.1)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "top") +
+  theme(legend.box = "vertical") +
+  theme(legend.spacing.y = unit(0, "lines"))
+cr1
+```
+
+#### Per Capita Consumption Expenditure Gini decomposition by income class
+### population weighted
+```{r tidy=TRUE}
+w_cin <- function(dat_con){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_con, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$pcon, z=ha[[i]]$in_class, weights = ha[[i]]$pop)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+conin_wdecomp <- w_cin(dat_con)
+```
+
+#### Parse Hash Function
+```{r tidy=TRUE}
+wcin_decomp <- as.list(conin_wdecomp)
+wcin <- lapply(wcin_decomp, function(x) x[1]$gini_decomp)
+wcin_d <- do.call(rbind.data.frame, wcin)
+wcin_d <- cbind(Year=as.numeric(rownames(wcin_d)), wcin_d)
+rownames(wcin_d) <- NULL
+wcin_d <- wcin_d[order(wcin_d$Year, decreasing = FALSE),]
+wcin_d <- wcin_d %>% rename(wgini=gini_total, w_within=gini_within, 
+                            w_between=gini_between, w_overlap=gini_overlap)
+```
+
+#### unweighted by income class
+```{r tidy=TRUE}
+un_cin <- function(dat_con){
+  ha <-hash()
+  for(j in 2000:2021){
+    ha[[as.character(j)]] <-by_year(dat_con, j)
+  } 
+  hb <- hash()
+  keys_ha <- keys(ha)
+  for(i in keys_ha) {
+    bar <- gini_decomp(x=ha[[i]]$pcon, z=ha[[i]]$in_class)
+    hb[[i]] <- bar["gini_decomp"]
+  }
+  return(hb)
+}
+conin_undecomp <- un_cin(dat_con)
+```
+
+#### Parse Hash fuction
+```{r tidy=TRUE}
+uncin_decomp <- as.list(conin_undecomp)
+uncin <- lapply(uncin_decomp, function(x) x[1]$gini_decomp)
+uncin_decomp <- do.call(rbind.data.frame, uncin)
+uncin_decomp <- cbind(Year=as.numeric(rownames(uncin_decomp)), uncin_decomp)
+rownames(uncin_decomp) <- NULL
+uncin_d <- uncin_decomp[order(uncin_decomp$Year, decreasing = FALSE),]
+uncin_d <- uncin_d %>% rename(ungini=gini_total, un_within=gini_within, 
+                              un_between=gini_between, un_overlap=gini_overlap)
+```
+
+#### Merge weighted and unweighted Gini and Decomposition by Income Class 
+```{r tidy=TRUE}
+decomp_conin <- cbind(wcin_d, uncin_d)
+decomp_conin <- decomp_conin %>% select(1:5, 7:10)
+decomp_conin
+
+cin1 <- ggplot(decomp_conin, aes(x = Year))+
+  geom_line(aes(y = wgini, color = "Overall Gini"), linetype = "solid", size=1.0)+
+  geom_line(aes(y = w_between, color = "Between"), linetype = "solid")+
+  geom_line(aes(y = w_within, color = "Within"), linetype = "solid")+
+  geom_line(aes(y = w_overlap, color = "Overlap"), linetype ="solid")+
+  geom_line(aes(y = ungini, color = "Overall Gini"), linetype ="dashed", size = 1.0)+
+  geom_line(aes(y = un_between, color = "Between"), linetype = "dashed")+
+  geom_line(aes(y = un_within, color = "Within"), linetype = "dashed")+
+  geom_line(aes(y = un_overlap, color = "Overlap"), linetype = "dashed")+
+  scale_colour_manual(values=c("Overall Gini" = "black", "Between" = "blue",
+                               "Within" = "red", "Overlap" = "green"))+
+  geom_line(aes(y = wgini, linetype = "solid"))+
+  geom_line(aes(y = w_between, linetype = "solid"))+
+  geom_line(aes(y = w_within, linetype = "solid"))+
+  geom_line(aes(y = w_overlap, linetype ="solid"))+
+  geom_line(aes(y = ungini, linetype="dashed"))+
+  geom_line(aes(y = un_between, linetype="dashed"))+
+  geom_line(aes(y = un_within, linetype="dashed"))+
+  geom_line(aes(y = un_overlap, linetype="dashed"))+
+  scale_linetype_manual(values=c( "Weighted" = "solid","Unweighted" = "dashed"))+
+  labs(x = "Year", y = "By Income Class")+
+  theme(text=element_text(size=11))+
+  theme(axis.text.y=element_blank())+
+  #theme(axis.ticks.y=element_blank())+
+  scale_x_continuous(breaks = seq(min(decomp_conin$Year), max(decomp_conin$Year), 1)) +
+  scale_y_continuous(limits = c(0, 0.60), breaks = seq(0, 0.60, 0.1)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "top") +
+  theme(legend.box = "vertical")+
+  theme(legend.spacing.y = unit(0, "lines"))
+cin1
+
+decomp_con <- ggarrange(cr1, cin1, labels = c("a", "b"), hjust = -3.0, vjust = 1.5,
+          font.label = list(size = 12, color = "black", face = "plain"),
+          ncol = 2, nrow = 1, common.legend = TRUE, legend="bottom")
+decomp_con
+```
+
+####144 countries with both GDP and Consumption Expenditure Data
+```{r tidy=TRUE}
+gdp_con144 <- read.csv("C:/Users/shres/OneDrive/Desktop/Income Inequality/dat_all.csv", header=T, stringsAsFactors = FALSE)
+gdp_con144 <- gdp_con144 %>% dplyr::select(2:9)
+head(gdp_con144, 16)
+```
+
+##
+```{r tidy=TRUE}
+gdp_con19 <- gdp_con144 %>% filter(Year == 2019)
+gdp_con20 <- gdp_con144 %>% filter(Year == 2020)
+gdp_con21 <-gdp_con144 %>% filter(Year == 2021)
+
+gdp_con19_code <- gdp_con19 %>% dplyr::select(1, 2)
+gdp_con20_code <- gdp_con20 %>% dplyr::select(1, 2)
+gdp_con21_code <- gdp_con21 %>% dplyr::select(1, 2)
+code44 <- list(gdp_con19_code, gdp_con20_code, gdp_con21_code) %>% reduce(inner_join)
+
+gdp_con44 <- inner_join(code44, gdp_con144)
+gdp_conC <- gdp_con44 %>% filter(Country == "China")
+gdp_conC
+gdp_conI <- gdp_con44 %>% filter(Country == "India")
+gdp_conI
+gdp_conU <- gdp_con44 %>% filter(Country == "United States")
+gdp_conU
+
+mean_gdpcon44 <- gdp_con44 %>% group_by(Year) %>%
+                dplyr::summarize(wtm_gdp44 = weighted.mean(gdp, pop), wtm_con44 = weighted.mean(pcon, pop),
+                          sum_pop =sum(pop))
+tail(mean_gdpcon44)
+```
+
+####Histogram 2019 to 2021
+```{r tidy=TRUE}
+gdp_con19_21 <- gdp_con44 %>% filter(Year >= 2019)
+wmu <- gdp_con19_21 %>% group_by(Year) %>% dplyr::summarise(grp.wmean=weighted.mean(gdp, pop))
+
+ggplot(gdp_con19_21, aes(x=gdp, color=factor(Year))) +
+  geom_histogram(aes(weight=pop), fill= "grey", position="dodge", bins = 40)+
+  geom_vline(data = wmu, aes(xintercept=grp.wmean, color = factor(Year)), linetype="dotted")+
+  labs(x = "Per Cpita GDP (PPP 2017 $)", y = "Number of Individuals")+
+  theme(legend.title = element_blank())+
+  theme(legend.position = c(0.8, 0.8)) +
+  theme(legend.spacing.y = unit(0, "lines"))
+```
+
+### 
+```{r tidy=TRUE}
+gdp_con19_44 <- gdp_con44 %>% filter(Year == 2019)
+wg_19 <- gdp_con19_44 %>% arrange(gdp)
+wg_19$one <- "1" 
+wg_19$one <-as.numeric(wg_19$one)
+wg_19$cum_unit = cumsum(wg_19$one*wg_19$pop)/sum(wg_19$one*wg_19$pop)  ## cum_unit ranked by per capita GDP
+wg_19$gdp = cumsum(wg_19$gdp*wg_19$pop)/sum(wg_19$gdp*wg_19$pop) 
+tail(wg_19, 100)
+
+gdp_con20_44 <- gdp_con44 %>% filter(Year == 2020)
+wg_20 <- gdp_con20_44 %>% arrange(gdp)
+wg_20$one <- "1" 
+wg_20$one <-as.numeric(wg_20$one)
+wg_20$cum_unit = cumsum(wg_20$one*wg_20$pop)/sum(wg_20$one*wg_20$pop)  ## cum_unit ranked by per capita GDP
+wg_20$gdp = cumsum(wg_20$gdp*wg_20$pop)/sum(wg_20$gdp*wg_20$pop) 
+head(wg_20, 100)
+
+gdp_poor <- gdp_con19_21 %>% group_by(Year) %>%
+  dplyr::filter(gdp < wmu$grp.wmean)
+gdp_poor
+
+gdp_rich <- gdp_con19_21 %>% group_by(Year) %>%
+  dplyr::filter(gdp > wmu$grp.wmean)
+
+gdp_rich
+```
+
+#### Gini 
+```{r tidy=TRUE}
+gini144 <- gdp_con44 %>% group_by(Year) %>%
+  summarize(gngdp = gini(gdp), wgn_gdp = gini.wtd(gdp, pop), gncon=gini(pcon), 
+            wgn_con=gini.wtd(pcon, pop), n())
+tail(gini144, 9)
+```
+
+#### plot Gini of GDP and Expenditure for 144 countries from 2013 to 2021
+```{r tidy=TRUE}
+gdpcon_144 <- ggplot(gini144, aes(x = Year))+
+  geom_line(aes(y = gngdp, color = "Per Capita GDP Gini"), linetype = "dashed", size = 1.0)+
+  geom_line(aes(y = wgn_gdp, color = "Per Capita GDP Gini"), linetype = "solid")+
+  geom_line(aes(y = gncon, color = "Per Capita Expenditure Gini"), linetype ="dashed")+
+  geom_line(aes(y = wgn_con, color = "Per Capita Expenditure Gini"), linetype ="solid")+
+  scale_colour_manual(values=c("Per Capita GDP Gini" = "red", "Per Capita Expenditure Gini" = "green"))+
+  geom_line(aes(y = gngdp, linetype = "dahsed"))+
+  geom_line(aes(y = wgn_gdp, linetype = "solid"))+
+  geom_line(aes(y = gncon, linetype = "dashed"))+
+  geom_line(aes(y = wgn_con, linetype ="solid"))+
+  scale_linetype_manual(values=c( "Population Weighted" = "solid","Unweighted" = "dashed"))+
+  labs(x = "Year", y = "Per Capita GDP or Expenditure Gini")+
+  theme(text=element_text(size=11))+
+  scale_x_continuous(breaks = seq(min(gini144$Year), max(gini144$Year), 1)) +
+  scale_y_continuous(limits = c(0.42, 0.60), breaks = seq(0.42, 0.60, 0.02)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "top") +
+  theme(legend.box = "vertical")+
+  theme(legend.spacing.y = unit(0, "lines"))
+gdpcon_144
+```
+
+#### Theil L or Mean Log Deviation (MLD)
+### 144 countries with both GDP and Consumption Expenditure Data
+```{r tidy=TRUE}
+mld144 <- gdp_con44 %>% group_by(Year) %>%
+  summarize(mldgdp = mld.wtd(gdp), wmld_gdp = mld.wtd(gdp, pop), mldcon=mld.wtd(pcon), 
+            wmld_con=mld.wtd(pcon, pop), n())
+```
+
+#### plot Gini of GDP and Expenditure for 148 countries from 2013 to 2020
+```{r tidy=TRUE}
+gdpcon_mld <- ggplot(mld144, aes(x = Year))+
+  geom_line(aes(y = mldgdp, color = "Per Capita GDP MLD"), linetype = "dashed", size = 1.0)+
+  geom_line(aes(y = wmld_gdp, color = "Per Capita GDP MLD"), linetype = "solid")+
+  geom_line(aes(y = mldcon, color = "Per Capita Expenditure MLD"), linetype ="dashed")+
+  geom_line(aes(y = wmld_con, color = "Per Capita Expenditure MLD"), linetype ="solid")+
+  scale_colour_manual(values=c("Per Capita GDP MLD" = "red", "Per Capita Expenditure MLD" = "green"))+
+  geom_line(aes(y = mldgdp, linetype = "dahsed"))+
+  geom_line(aes(y = wmld_gdp, linetype = "solid"))+
+  geom_line(aes(y = mldcon, linetype = "dashed"))+
+  geom_line(aes(y = wmld_con, linetype ="solid"))+
+  scale_linetype_manual(values=c( "Population Weighted" = "solid","Unweighted" = "dashed"))+
+  labs(x = "Year", y = "Per Capita GDP or Expenditure MLD")+
+  theme(text=element_text(size=11))+
+  scale_x_continuous(breaks = seq(min(gini144$Year), max(gini144$Year), 1)) +
+  scale_y_continuous(limits = c(0.34, 0.64), breaks = seq(0.34, 0.64, 0.04)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "top") +
+  theme(legend.box = "vertical")+
+  theme(legend.spacing.y = unit(0, "lines"))
+gdpcon_mld
+```
+
+#### Weighted MLD with or without China and India (for 144 countries)
+```{r tidy=TRUE}
+nchina <- gdp_con44 %>% filter(Country !="China")
+nindia <- gdp_con44 %>% filter(Country != "India")
+nUS <- gdp_con44 %>% filter(Country !="United States")
+
+mldnc <- nchina %>% group_by(Year) %>%
+  summarise(mldgdp_nC = mld.wtd(gdp, pop), mldcon_nC = mld.wtd(pcon, pop))
+
+mldni <- nindia %>% group_by(Year) %>%
+  summarise(mldgdp_nI = mld.wtd(gdp, pop), mldcon_nI= mld.wtd(pcon, pop))
+
+mldnUS <- nUS %>% group_by(Year) %>%
+  summarize(mldgdp_nUS = mld.wtd(gdp, pop), mldcon_nUS = mld.wtd(pcon, pop))
+
+gc_mld <- gdp_con44 %>% group_by(Year) %>%
+  summarise(mld_gdp = mld.wtd(gdp, pop), mld_con = mld.wtd(pcon, pop), ncon=n())
+
+mldgc44 <- list(gc_mld, mldnc, mldni, mldnUS) %>% reduce(left_join, by = "Year")
+tail(mldgc44, 10)
+```
+
+#### GINI with or without India, China, or US
+```{r tidy=TRUE}
+mld_gc44 <- ggplot(mldgc44, aes(x = Year))+
+  geom_line(aes(y = mld_gdp, color = "All"), linetype = "solid", size = 1.0)+
+  geom_line(aes(y = mldgdp_nC, color = "Without China"), linetype = "solid")+
+  geom_line(aes(y = mldgdp_nI, color = "Without India"), linetype ="solid")+
+  geom_line(aes(y = mldgdp_nUS, color = "Without US"), linetype = "solid")+
+  geom_line(aes(y = mld_con, color = "All"), linetype = "dashed", size = 1.0)+
+  geom_line(aes(y = mldcon_nC, color = "Without China"), linetype = "dashed")+
+  geom_line(aes(y = mldcon_nI, color = "Without India"), linetype ="dashed")+
+  geom_line(aes(y = mldcon_nUS, color = "Without US"), linetype = "dashed")+
+  scale_colour_manual(values=c("Without China" = "blue", "Without India" = "red",
+                               "Without US" = "green", "All" = "black"))+
+  geom_line(aes(y = mld_gdp, linetype = "solid"))+
+  geom_line(aes(y = mldgdp_nC, linetype = "solid"))+
+  geom_line(aes(y = mldgdp_nI, linetype ="solid"))+
+  geom_line(aes(y = mldgdp_nUS, linetype = "solid"))+
+  geom_line(aes(y = mld_con, linetype = "dashed"))+
+  geom_line(aes(y = mldcon_nC, linetype = "dashed"))+
+  geom_line(aes(y = mldcon_nI, linetype ="dashed"))+
+  geom_line(aes(y = mldcon_nUS, linetype = "dashed"))+
+  scale_linetype_manual(name= "Line Type", values=c( "Per capita GDP" = "solid",
+                                                     "Per Capita Expenditure" = "dashed"))+
+  labs(x = "Year", y = "Population Weighted MLD")+
+  #guides(color=guide_legend(nrow = 2))+
+  theme(text=element_text(size=11))+
+  scale_x_continuous(breaks = seq(min(mldgc44$Year), max(mldgc44$Year), 1)) +
+  scale_y_continuous(limits = c(0.24, 0.66), breaks = seq(0.24, 0.66, 0.04)) +
+  theme(axis.text.x = element_text(angle = 90, vjust=0.5))+
+  theme(legend.title = element_blank())+
+  theme(legend.direction = "horizontal") +
+  theme(legend.position = "top") +
+  theme(legend.box = "vertical")+
+  theme(legend.spacing.y = unit(0, "lines"))
+mld_gc44
+```
